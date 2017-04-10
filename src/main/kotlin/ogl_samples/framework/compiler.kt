@@ -14,6 +14,12 @@ class Compiler {
 
     val pendingChecks = mutableListOf<Pair<String, Int>>()
 
+    fun create(context: KClass<*>, vararg shader: String):Int {
+        val program = glCreateProgram()
+        shader.map{ create(context, it) }.forEach { glAttachShader(program, it) }
+        return program
+    }
+
     fun create(context: KClass<*>, filename: String): Int {
 
         val path = "/data/$filename"
@@ -25,6 +31,7 @@ class Compiler {
                 source += parseInclude(context, path.substringBeforeLast('/'), it.substring("#include ".length).trim())
             else
                 source += it
+            source += '\n'
         }
         val name = glCreateShader(getType(filename.toString().substringAfterLast('.')))
 //        println(source)

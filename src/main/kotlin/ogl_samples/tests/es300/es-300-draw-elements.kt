@@ -23,7 +23,7 @@ import uno.caps.Caps.Profile
  */
 
 fun main(args: Array<String>) {
-    es_300_draw_elements().run()
+    es_300_draw_elements().setup()
 }
 
 class es_300_draw_elements : Test("es-300-draw-elements", Profile.ES, 3, 0) {
@@ -174,7 +174,7 @@ class es_300_draw_elements : Test("es-300-draw-elements", Profile.ES, 3, 0) {
         val mvp = projection * view() * model
 
         // Set the display viewport
-        glViewport(0, 0, windowSize.x, windowSize.y)
+        glViewport(windowSize)
 
         // Clear color buffer with black
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f)

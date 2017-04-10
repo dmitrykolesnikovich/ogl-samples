@@ -4,6 +4,7 @@ import glm.glm
 import glm.mat.Mat4
 import glm.vec._2.Vec2
 import glm.vec._2.Vec2i
+import glm.vec._3.Vec3
 import glm.vec._4.Vec4
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWKeyCallbackI
@@ -12,8 +13,7 @@ import org.lwjgl.opengl.ARBES2Compatibility.GL_IMPLEMENTATION_COLOR_READ_FORMAT
 import org.lwjgl.opengl.ARBES2Compatibility.GL_IMPLEMENTATION_COLOR_READ_TYPE
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL20.glUniform4fv
-import org.lwjgl.opengl.GL20.glUniformMatrix4fv
+import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32.GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS
 import org.lwjgl.system.Platform
@@ -144,7 +144,7 @@ abstract class Test(
         return result
     }
 
-    fun run(): Boolean {
+    fun setup(): Boolean {
 
         if (window.handle == 0L)
             return EXIT_FAILURE
@@ -385,6 +385,86 @@ class GlfwWindow(windowSize: Vec2i, title: String) {
 
 val mat4Buffer = floatBufferBig(16)
 val vec4Buffer = floatBufferBig(4)
+val clearColor = floatBufferBig(4)
+val clearDepth = floatBufferBig(1)
 
 fun glUniform4fv(location: Int, vec4: Vec4) = glUniform4fv(location, vec4 to vec4Buffer)
 fun glUniformMatrix4fv(location: Int, mat4: Mat4) = glUniformMatrix4fv(location, false, mat4 to mat4Buffer)
+
+fun glCreatePrograms(programs: IntArray) = programs.forEachIndexed { i, it -> programs[i] = glCreateProgram() }
+fun glDeletePrograms(programs: IntArray) = programs.forEachIndexed { i, it -> glDeleteProgram(programs[i]) }
+
+fun glClearBufferfv(buffer: Int, drawBuffer: Int, value: Float) = glClearBufferfv(buffer, drawBuffer, clearDepth.put(0, value))
+fun glClearBufferfv(buffer: Int, drawBuffer: Int, value: Vec4) = glClearBufferfv(buffer, drawBuffer, value to clearColor)
+fun glViewport(size: Vec2i) = glViewport(0, 0, size.x, size.y)
+fun glViewport(x:Int, y:Int, size: Vec2i) = glViewport(x, y, size.x, size.y)
+
+fun generateIcosahedron(vertexData: MutableList<Vec3>, subdivision: Int) {
+
+    //The golden ratio
+    val t = (1 + glm.sqrt(5f)) / 2
+    val size = 1.0f
+
+    val A = glm.normalize(Vec3(-size, +t * size, 0.0f))    // 0
+    val B = glm.normalize(Vec3(+size, +t * size, 0.0f))    // 1
+    val C = glm.normalize(Vec3(-size, -t * size, 0.0f))    // 2
+    val D = glm.normalize(Vec3(+size, -t * size, 0.0f))    // 3
+
+    val E = glm.normalize(Vec3(0.0f, -size, +t * size))    // 4
+    val F = glm.normalize(Vec3(0.0f, size, +t * size))    // 5
+    val G = glm.normalize(Vec3(0.0f, -size, -t * size))    // 6
+    val H = glm.normalize(Vec3(0.0f, size, -t * size))    // 7
+
+    val I = glm.normalize(Vec3(+t * size, 0.0f, -size))    // 8
+    val J = glm.normalize(Vec3(+t * size, 0.0f, size))    // 9
+    val K = glm.normalize(Vec3(-t * size, 0.0f, -size))    // 10
+    val L = glm.normalize(Vec3(-t * size, 0.0f, size))    // 11
+
+    subdiviseIcosahedron(vertexData, A, L, F, subdivision)
+    subdiviseIcosahedron(vertexData, A, F, B, subdivision)
+    subdiviseIcosahedron(vertexData, A, B, H, subdivision)
+    subdiviseIcosahedron(vertexData, A, H, K, subdivision)
+    subdiviseIcosahedron(vertexData, A, K, L, subdivision)
+
+    subdiviseIcosahedron(vertexData, B, F, J, subdivision)
+    subdiviseIcosahedron(vertexData, F, L, E, subdivision)
+    subdiviseIcosahedron(vertexData, L, K, C, subdivision)
+    subdiviseIcosahedron(vertexData, K, H, G, subdivision)
+    subdiviseIcosahedron(vertexData, H, B, I, subdivision)
+
+    subdiviseIcosahedron(vertexData, D, J, E, subdivision)
+    subdiviseIcosahedron(vertexData, D, E, C, subdivision)
+    subdiviseIcosahedron(vertexData, D, C, G, subdivision)
+    subdiviseIcosahedron(vertexData, D, G, I, subdivision)
+    subdiviseIcosahedron(vertexData, D, I, J, subdivision)
+
+    subdiviseIcosahedron(vertexData, E, J, F, subdivision)
+    subdiviseIcosahedron(vertexData, C, E, L, subdivision)
+    subdiviseIcosahedron(vertexData, G, C, K, subdivision)
+    subdiviseIcosahedron(vertexData, I, G, H, subdivision)
+    subdiviseIcosahedron(vertexData, J, I, B, subdivision)
+}
+
+fun subdiviseIcosahedron(vertexData: MutableList<Vec3>, a0: Vec3, b0: Vec3, c0: Vec3, subdivise: Int) {
+    if (subdivise == 0) {
+        vertexData.add(a0)
+        vertexData.add(b0)
+        vertexData.add(c0)
+    } else {
+        val a1 = (b0 + c0) * 0.5f
+        val b1 = (c0 + a0) * 0.5f
+        val c1 = (a0 + b0) * 0.5f
+
+        if (a1.length() > 0f)
+            a1.normalize_()
+        if (b1.length() > 0f)
+            b1.normalize_()
+        if (c1.length() > 0f)
+            c1.normalize_()
+
+        subdiviseIcosahedron(vertexData, a0, b1, c1, subdivise - 1)
+        subdiviseIcosahedron(vertexData, b0, c1, a1, subdivise - 1)
+        subdiviseIcosahedron(vertexData, c0, a1, b1, subdivise - 1)
+        subdiviseIcosahedron(vertexData, b1, a1, c1, subdivise - 1)
+    }
+}
