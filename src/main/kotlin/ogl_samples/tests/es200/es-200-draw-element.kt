@@ -138,7 +138,6 @@ class es_200_draw_elements : Test("es-200-draw-elements", Profile.ES, 2, 0) {
             // Set the value of MVP uniform.
             mvp to uniformMVP
 
-            bindingVertexArray(ver)
             glBindBuffer(GL_ARRAY_BUFFER, bufferName[Buffer.VERTEX])
             glVertexAttribPointer(semantic.attr.POSITION, Vec2.length, GL_FLOAT, false, Vec2.SIZE, 0)
             glBindBuffer(GL_ARRAY_BUFFER, 0)

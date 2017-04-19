@@ -7,6 +7,7 @@ import glm.vec._2.Vec2i
 import glm.vec._3.Vec3
 import glm.vec._4.Vec4
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWKeyCallbackI
 import org.lwjgl.glfw.GLFWMouseButtonCallbackI
 import org.lwjgl.opengl.ARBES2Compatibility.GL_IMPLEMENTATION_COLOR_READ_FORMAT
@@ -56,7 +57,8 @@ abstract class Test(
             visible = true
             srgb = false
             decorated = true
-            api = if (this@Test.profile == Profile.ES) "es" else "gl"
+            //api = if (this@Test.profile == Profile.ES) "es" else "gl"
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API)
 
             if (version(this@Test.major, this@Test.minor) >= version(3, 2) || this@Test.profile == Profile.ES) {
                 major = this@Test.major
@@ -95,6 +97,8 @@ abstract class Test(
         glfwMakeContextCurrent(window.handle)
 
         GL.createCapabilities()
+
+        glfwShowWindow(window.handle)
     }
 
     constructor(title: String, profile: Profile, major: Int, minor: Int,
@@ -269,38 +273,6 @@ abstract class Test(
         return version(majorVersionContext, minorVersionContext) >= version(majorVersionContext, minorVersionContext)
     }
 
-    object windowHint {
-        var resizable = true
-            set(value) = glfwWindowHint(GLFW_RESIZABLE, if (value) GLFW_TRUE else GLFW_FALSE)
-        var visible = true
-            set(value) = glfwWindowHint(GLFW_VISIBLE, if (value) GLFW_TRUE else GLFW_FALSE)
-        var srgb = true
-            set(value) = glfwWindowHint(GLFW_SRGB_CAPABLE, if (value) GLFW_TRUE else GLFW_FALSE)
-        var decorated = true
-            set(value) = glfwWindowHint(GLFW_DECORATED, if (value) GLFW_TRUE else GLFW_FALSE)
-        var api = ""
-            set(value) = glfwWindowHint(GLFW_CLIENT_API, when (value) {
-                "gl" -> GLFW_OPENGL_API
-                "es" -> GLFW_OPENGL_ES_API
-                else -> GLFW_NO_API
-            })
-        var major = 0
-            set(value) = glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, value)
-        var minor = 0
-            set(value) = glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, value)
-        var profile = ""
-            set(value) = glfwWindowHint(GLFW_OPENGL_PROFILE,
-                    when (value) {
-                        "core" -> GLFW_OPENGL_CORE_PROFILE
-                        "compat" -> GLFW_OPENGL_COMPAT_PROFILE
-                        else -> GLFW_OPENGL_ANY_PROFILE
-                    })
-        var forwardComp = true
-            set(value) = glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, if (value) GLFW_TRUE else GLFW_FALSE)
-        var debug = true
-            set(value) = glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, if (value) GLFW_TRUE else GLFW_FALSE)
-    }
-
     inner class MouseListener : GLFWMouseButtonCallbackI {
         override fun invoke(window: Long, button: Int, action: Int, mods: Int) {
             when (action) {
@@ -357,114 +329,5 @@ abstract class Test(
         val PRESS = GLFW_PRESS
         val RELEASE = GLFW_RELEASE
         val REPEAT = GLFW_REPEAT
-    }
-
-}
-
-infix fun Int.or(e: Test.Heuristic) = this or e.i
-
-
-class GlfwWindow(windowSize: Vec2i, title: String) {
-
-    val x = intBufferBig(1)
-    val y = intBufferBig(1)
-    val handle = glfwCreateWindow(windowSize.x, windowSize.y, title, 0L, 0L)
-    var shouldClose = false
-
-    var pos = Vec2i()
-        get() {
-            glfwGetWindowPos(handle, x, y)
-            return field.put(x[0], y[0])
-        }
-        set(value) = glfwSetWindowPos(handle, value.x, value.y)
-
-    fun dispose() {
-        destroyBuffers(x, y)
-    }
-}
-
-val mat4Buffer = floatBufferBig(16)
-val vec4Buffer = floatBufferBig(4)
-val clearColor = floatBufferBig(4)
-val clearDepth = floatBufferBig(1)
-
-fun glUniform4fv(location: Int, vec4: Vec4) = glUniform4fv(location, vec4 to vec4Buffer)
-fun glUniformMatrix4fv(location: Int, mat4: Mat4) = glUniformMatrix4fv(location, false, mat4 to mat4Buffer)
-
-fun glCreatePrograms(programs: IntArray) = programs.forEachIndexed { i, it -> programs[i] = glCreateProgram() }
-fun glDeletePrograms(programs: IntArray) = programs.forEachIndexed { i, it -> glDeleteProgram(programs[i]) }
-
-fun glClearBufferfv(buffer: Int, drawBuffer: Int, value: Float) = glClearBufferfv(buffer, drawBuffer, clearDepth.put(0, value))
-fun glClearBufferfv(buffer: Int, drawBuffer: Int, value: Vec4) = glClearBufferfv(buffer, drawBuffer, value to clearColor)
-fun glViewport(size: Vec2i) = glViewport(0, 0, size.x, size.y)
-fun glViewport(x:Int, y:Int, size: Vec2i) = glViewport(x, y, size.x, size.y)
-
-fun generateIcosahedron(vertexData: MutableList<Vec3>, subdivision: Int) {
-
-    //The golden ratio
-    val t = (1 + glm.sqrt(5f)) / 2
-    val size = 1.0f
-
-    val A = glm.normalize(Vec3(-size, +t * size, 0.0f))    // 0
-    val B = glm.normalize(Vec3(+size, +t * size, 0.0f))    // 1
-    val C = glm.normalize(Vec3(-size, -t * size, 0.0f))    // 2
-    val D = glm.normalize(Vec3(+size, -t * size, 0.0f))    // 3
-
-    val E = glm.normalize(Vec3(0.0f, -size, +t * size))    // 4
-    val F = glm.normalize(Vec3(0.0f, size, +t * size))    // 5
-    val G = glm.normalize(Vec3(0.0f, -size, -t * size))    // 6
-    val H = glm.normalize(Vec3(0.0f, size, -t * size))    // 7
-
-    val I = glm.normalize(Vec3(+t * size, 0.0f, -size))    // 8
-    val J = glm.normalize(Vec3(+t * size, 0.0f, size))    // 9
-    val K = glm.normalize(Vec3(-t * size, 0.0f, -size))    // 10
-    val L = glm.normalize(Vec3(-t * size, 0.0f, size))    // 11
-
-    subdiviseIcosahedron(vertexData, A, L, F, subdivision)
-    subdiviseIcosahedron(vertexData, A, F, B, subdivision)
-    subdiviseIcosahedron(vertexData, A, B, H, subdivision)
-    subdiviseIcosahedron(vertexData, A, H, K, subdivision)
-    subdiviseIcosahedron(vertexData, A, K, L, subdivision)
-
-    subdiviseIcosahedron(vertexData, B, F, J, subdivision)
-    subdiviseIcosahedron(vertexData, F, L, E, subdivision)
-    subdiviseIcosahedron(vertexData, L, K, C, subdivision)
-    subdiviseIcosahedron(vertexData, K, H, G, subdivision)
-    subdiviseIcosahedron(vertexData, H, B, I, subdivision)
-
-    subdiviseIcosahedron(vertexData, D, J, E, subdivision)
-    subdiviseIcosahedron(vertexData, D, E, C, subdivision)
-    subdiviseIcosahedron(vertexData, D, C, G, subdivision)
-    subdiviseIcosahedron(vertexData, D, G, I, subdivision)
-    subdiviseIcosahedron(vertexData, D, I, J, subdivision)
-
-    subdiviseIcosahedron(vertexData, E, J, F, subdivision)
-    subdiviseIcosahedron(vertexData, C, E, L, subdivision)
-    subdiviseIcosahedron(vertexData, G, C, K, subdivision)
-    subdiviseIcosahedron(vertexData, I, G, H, subdivision)
-    subdiviseIcosahedron(vertexData, J, I, B, subdivision)
-}
-
-fun subdiviseIcosahedron(vertexData: MutableList<Vec3>, a0: Vec3, b0: Vec3, c0: Vec3, subdivise: Int) {
-    if (subdivise == 0) {
-        vertexData.add(a0)
-        vertexData.add(b0)
-        vertexData.add(c0)
-    } else {
-        val a1 = (b0 + c0) * 0.5f
-        val b1 = (c0 + a0) * 0.5f
-        val c1 = (a0 + b0) * 0.5f
-
-        if (a1.length() > 0f)
-            a1.normalize_()
-        if (b1.length() > 0f)
-            b1.normalize_()
-        if (c1.length() > 0f)
-            c1.normalize_()
-
-        subdiviseIcosahedron(vertexData, a0, b1, c1, subdivise - 1)
-        subdiviseIcosahedron(vertexData, b0, c1, a1, subdivise - 1)
-        subdiviseIcosahedron(vertexData, c0, a1, b1, subdivise - 1)
-        subdiviseIcosahedron(vertexData, b1, a1, c1, subdivise - 1)
     }
 }
