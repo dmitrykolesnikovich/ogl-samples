@@ -10,6 +10,7 @@ import org.lwjgl.opengl.ARBES2Compatibility.glClearDepthf
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
+import uno.buffer.destroyBuffers
 import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
 import uno.buffer.shortBufferOf
@@ -20,7 +21,7 @@ import uno.caps.Caps.Profile
  */
 
 fun main(args: Array<String>) {
-    es_200_draw_elements().run()
+    es_200_draw_elements().setup()
 }
 
 class es_200_draw_elements : Test("es-200-draw-elements", Profile.ES, 2, 0) {
@@ -56,10 +57,10 @@ class es_200_draw_elements : Test("es-200-draw-elements", Profile.ES, 2, 0) {
 
         var validated = true
 
-        println(glGetString(GL_VENDOR))
-        println(glGetString(GL_RENDERER))
-        println(glGetString(GL_VERSION))
-        glGetString(GL_EXTENSIONS).split("\\s+".toRegex()).forEach(::println)
+        println(gl.VENDOR)
+        println(gl.RENDERER)
+        println(gl.VERSION)
+        gl.EXTENSIONS.forEach(::println)
 
         if (validated)
             validated = initProgram()
@@ -78,38 +79,30 @@ class es_200_draw_elements : Test("es-200-draw-elements", Profile.ES, 2, 0) {
         if (validated) {
 
             val compiler = Compiler()
-            val vertShaderName = compiler.create(this::class, SHADER_SOURCE + ".vert")
-            val fragShaderName = compiler.create(this::class, SHADER_SOURCE + ".frag")
+            programName = compiler.create(this::class, "$SHADER_SOURCE.vert", "$SHADER_SOURCE.frag")
 
-            programName = glCreateProgram()
-            glAttachShader(programName, vertShaderName)
-            glAttachShader(programName, fragShaderName)
-
-            glBindAttribLocation(programName, semantic.attr.POSITION, "Position")
-            glLinkProgram(programName)
+            withProgram(programName) {
+                "Position" to semantic.attr.POSITION
+                link()
+            }
 
             validated = validated && compiler.check()
             validated = validated && compiler.checkProgram(programName)
         }
 
         // Get variables locations
-        if (validated) {
-            uniformMVP = glGetUniformLocation(programName, "MVP")
-            uniformDiffuse = glGetUniformLocation(programName, "Diffuse")
-        }
+        if (validated)
+            withProgram(programName) {
+                uniformMVP = "MVP".location
+                uniformDiffuse = "Diffuse".location
+            }
 
         // Set some variables
-        if (validated) {
-
-            // Bind the program for use
-            glUseProgram(programName)
-
-            // Set uniform value
-            glUniform4fv(uniformDiffuse, Vec4(1.0f, 0.5f, 0.0f, 1.0f))
-
-            // Unbind the program
-            glUseProgram(0)
-        }
+        if (validated)
+            usingProgram(programName) {
+                // Set uniform value
+                Vec4(1.0f, 0.5f, 0.0f, 1.0f) to uniformDiffuse
+            }
 
         return validated && checkError("initProgram")
     }
@@ -118,13 +111,8 @@ class es_200_draw_elements : Test("es-200-draw-elements", Profile.ES, 2, 0) {
 
         glGenBuffers(bufferName)
 
-        glBindBuffer(GL_ARRAY_BUFFER, bufferName[Buffer.VERTEX])
-        glBufferData(GL_ARRAY_BUFFER, positionData, GL_STATIC_DRAW)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferName[Buffer.ELEMENT])
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, elementData, GL_STATIC_DRAW)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+        bindingBuffer(bufferName[Buffer.VERTEX] to GL_ARRAY_BUFFER) { data(positionData, GL_STATIC_DRAW) }
+        bindingBuffer(bufferName[Buffer.ELEMENT] to GL_ELEMENT_ARRAY_BUFFER) { data(elementData, GL_STATIC_DRAW) }
 
         return checkError("initBuffer")
     }
@@ -137,7 +125,7 @@ class es_200_draw_elements : Test("es-200-draw-elements", Profile.ES, 2, 0) {
         val mvp = projection * view() * model
 
         // Set the display viewport
-        glViewport(0, 0, windowSize.x, windowSize.y)
+        glViewport(windowSize)
 
         // Clear color buffer with black
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
@@ -145,22 +133,20 @@ class es_200_draw_elements : Test("es-200-draw-elements", Profile.ES, 2, 0) {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         // Bind program
-        glUseProgram(programName)
+        usingProgram(programName) {
 
-        // Set the value of MVP uniform.
-        glUniformMatrix4fv(uniformMVP, mvp)
+            // Set the value of MVP uniform.
+            mvp to uniformMVP
 
-        glBindBuffer(GL_ARRAY_BUFFER, bufferName[Buffer.VERTEX])
-        glVertexAttribPointer(semantic.attr.POSITION, Vec2.length, GL_FLOAT, false, Vec2.SIZE, 0)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferName[Buffer.ELEMENT])
+            glBindBuffer(GL_ARRAY_BUFFER, bufferName[Buffer.VERTEX])
+            glVertexAttribPointer(semantic.attr.POSITION, Vec2.length, GL_FLOAT, false, Vec2.SIZE, 0)
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferName[Buffer.ELEMENT])
 
-        glEnableVertexAttribArray(semantic.attr.POSITION)
-        glDrawElements(GL_TRIANGLES, elementCount, GL_UNSIGNED_SHORT, 0)
-        glDisableVertexAttribArray(semantic.attr.POSITION)
-
-        // Unbind program
-        glUseProgram(0)
+            glEnableVertexAttribArray(semantic.attr.POSITION)
+            glDrawElements(GL_TRIANGLES, elementCount, GL_UNSIGNED_SHORT, 0)
+            glDisableVertexAttribArray(semantic.attr.POSITION)
+        }
 
         return true
     }
@@ -169,6 +155,8 @@ class es_200_draw_elements : Test("es-200-draw-elements", Profile.ES, 2, 0) {
 
         glDeleteBuffers(bufferName)
         glDeleteProgram(programName)
+
+        destroyBuffers(bufferName, positionData)
 
         return true
     }

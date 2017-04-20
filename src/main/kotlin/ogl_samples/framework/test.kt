@@ -4,16 +4,17 @@ import glm.glm
 import glm.mat.Mat4
 import glm.vec._2.Vec2
 import glm.vec._2.Vec2i
+import glm.vec._3.Vec3
 import glm.vec._4.Vec4
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWKeyCallbackI
 import org.lwjgl.glfw.GLFWMouseButtonCallbackI
 import org.lwjgl.opengl.ARBES2Compatibility.GL_IMPLEMENTATION_COLOR_READ_FORMAT
 import org.lwjgl.opengl.ARBES2Compatibility.GL_IMPLEMENTATION_COLOR_READ_TYPE
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL20.glUniform4fv
-import org.lwjgl.opengl.GL20.glUniformMatrix4fv
+import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32.GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS
 import org.lwjgl.system.Platform
@@ -56,7 +57,8 @@ abstract class Test(
             visible = true
             srgb = false
             decorated = true
-            api = if (this@Test.profile == Profile.ES) "es" else "gl"
+            //api = if (this@Test.profile == Profile.ES) "es" else "gl"
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API)
 
             if (version(this@Test.major, this@Test.minor) >= version(3, 2) || this@Test.profile == Profile.ES) {
                 major = this@Test.major
@@ -95,6 +97,8 @@ abstract class Test(
         glfwMakeContextCurrent(window.handle)
 
         GL.createCapabilities()
+
+        glfwShowWindow(window.handle)
     }
 
     constructor(title: String, profile: Profile, major: Int, minor: Int,
@@ -144,7 +148,7 @@ abstract class Test(
         return result
     }
 
-    fun run(): Boolean {
+    fun setup(): Boolean {
 
         if (window.handle == 0L)
             return EXIT_FAILURE
@@ -269,38 +273,6 @@ abstract class Test(
         return version(majorVersionContext, minorVersionContext) >= version(majorVersionContext, minorVersionContext)
     }
 
-    object windowHint {
-        var resizable = true
-            set(value) = glfwWindowHint(GLFW_RESIZABLE, if (value) GLFW_TRUE else GLFW_FALSE)
-        var visible = true
-            set(value) = glfwWindowHint(GLFW_VISIBLE, if (value) GLFW_TRUE else GLFW_FALSE)
-        var srgb = true
-            set(value) = glfwWindowHint(GLFW_SRGB_CAPABLE, if (value) GLFW_TRUE else GLFW_FALSE)
-        var decorated = true
-            set(value) = glfwWindowHint(GLFW_DECORATED, if (value) GLFW_TRUE else GLFW_FALSE)
-        var api = ""
-            set(value) = glfwWindowHint(GLFW_CLIENT_API, when (value) {
-                "gl" -> GLFW_OPENGL_API
-                "es" -> GLFW_OPENGL_ES_API
-                else -> GLFW_NO_API
-            })
-        var major = 0
-            set(value) = glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, value)
-        var minor = 0
-            set(value) = glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, value)
-        var profile = ""
-            set(value) = glfwWindowHint(GLFW_OPENGL_PROFILE,
-                    when (value) {
-                        "core" -> GLFW_OPENGL_CORE_PROFILE
-                        "compat" -> GLFW_OPENGL_COMPAT_PROFILE
-                        else -> GLFW_OPENGL_ANY_PROFILE
-                    })
-        var forwardComp = true
-            set(value) = glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, if (value) GLFW_TRUE else GLFW_FALSE)
-        var debug = true
-            set(value) = glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, if (value) GLFW_TRUE else GLFW_FALSE)
-    }
-
     inner class MouseListener : GLFWMouseButtonCallbackI {
         override fun invoke(window: Long, button: Int, action: Int, mods: Int) {
             when (action) {
@@ -358,33 +330,4 @@ abstract class Test(
         val RELEASE = GLFW_RELEASE
         val REPEAT = GLFW_REPEAT
     }
-
 }
-
-infix fun Int.or(e: Test.Heuristic) = this or e.i
-
-
-class GlfwWindow(windowSize: Vec2i, title: String) {
-
-    val x = intBufferBig(1)
-    val y = intBufferBig(1)
-    val handle = glfwCreateWindow(windowSize.x, windowSize.y, title, 0L, 0L)
-    var shouldClose = false
-
-    var pos = Vec2i()
-        get() {
-            glfwGetWindowPos(handle, x, y)
-            return field.put(x[0], y[0])
-        }
-        set(value) = glfwSetWindowPos(handle, value.x, value.y)
-
-    fun dispose() {
-        destroyBuffers(x, y)
-    }
-}
-
-val mat4Buffer = floatBufferBig(16)
-val vec4Buffer = floatBufferBig(4)
-
-fun glUniform4fv(location: Int, vec4: Vec4) = glUniform4fv(location, vec4 to vec4Buffer)
-fun glUniformMatrix4fv(location: Int, mat4: Mat4) = glUniformMatrix4fv(location, false, mat4 to mat4Buffer)
