@@ -8,6 +8,7 @@ import glm.vec._2.Vec2i
 import ogl_samples.framework.int
 import ogl_samples.framework.mat4Buffer
 import org.lwjgl.opengl.ARBUniformBufferObject.GL_UNIFORM_BUFFER
+import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL30.*
 import java.nio.*
@@ -55,7 +56,6 @@ fun initBuffers(buffers: IntBuffer, block: Buffers.() -> Unit) {
     glGenBuffers(buffers)
     Buffers.buffers = buffers
     Buffers.block()
-    glBindBuffer(Buffers.target, 0)
 }
 
 fun initBuffer(target: Int, block: Buffer.() -> Unit): Int {
@@ -178,5 +178,19 @@ object Buffers {
         Buffer.target = target
         Buffer.name = buffers[bufferIndex] // bind
         Buffer.block()
+    }
+
+    fun withArrayAt(bufferIndex: Int, block: Buffer.() -> Unit) {
+        Buffer.target = GL_ARRAY_BUFFER
+        Buffer.name = buffers[bufferIndex] // bind
+        Buffer.block()
+        GL15.glBindBuffer(GL_ARRAY_BUFFER, 0)
+    }
+
+    fun withElementAt(bufferIndex: Int, block: Buffer.() -> Unit) {
+        Buffer.target = GL_ELEMENT_ARRAY_BUFFER
+        Buffer.name = buffers[bufferIndex] // bind
+        Buffer.block()
+        GL15.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
     }
 }

@@ -12,7 +12,7 @@ import uno.caps.Caps
  */
 
 fun main(args: Array<String>) {
-    gl_430_perf_monitor_amd().setup()
+    gl_430_perf_monitor_amd().run()
 }
 
 class gl_430_perf_monitor_amd : Test("gl-430-perf-monitor-amd", Caps.Profile.CORE, 4, 3) {

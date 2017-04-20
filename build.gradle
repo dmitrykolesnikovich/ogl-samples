@@ -18,28 +18,26 @@ buildscript {
     }
 }
 
-switch ( OperatingSystem.current() ) {
-    case OperatingSystem.WINDOWS:
-        project.ext.lwjglNatives = "natives-windows"
-        break
-    case OperatingSystem.LINUX:
-        project.ext.lwjglNatives = "natives-linux"
-        break
-    case OperatingSystem.MAC_OS:
-        project.ext.lwjglNatives = "natives-macos"
-        break
-}
-
-project.ext.lwjglVersion = "3.1.2-SNAPSHOT"
-
 dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
-    compile 'com.github.kotlin-graphics:gli:478095a11353690921a5269aa03ed1432c0995a0'
-    compile 'com.github.kotlin-graphics:glm:e4975b24b6d9eb1b8efb01aa561b8bd622fd4e7e'
-    compile 'com.github.kotlin-graphics:uno-sdk:c80ea0425a2913ecc2006d0fd475d7714028883c'
+    compile 'com.github.kotlin-graphics:gli:6010c0b008044b41725f6a29733f8bb39a5184a6'
+    compile 'com.github.kotlin-graphics:glm:8b98e9b98e275276df999fd631663d347b43f509'
+    compile 'com.github.kotlin-graphics:uno-sdk:3ffef78b7b4bf18db37f7889e916ff2d2936c9b9'
 
+    switch ( OperatingSystem.current() ) {
+        case OperatingSystem.WINDOWS:
+            ext.lwjglNatives = "natives-windows"
+            break
+        case OperatingSystem.LINUX:
+            ext.lwjglNatives = "natives-linux"
+            break
+        case OperatingSystem.MAC_OS:
+            ext.lwjglNatives = "natives-macos"
+            break
+    }
+    ext.lwjglVersion = "3.1.2-SNAPSHOT"
     compile "org.lwjgl:lwjgl:${lwjglVersion}"
     compile "org.lwjgl:lwjgl-glfw:${lwjglVersion}"
     compile "org.lwjgl:lwjgl-jemalloc:${lwjglVersion}"

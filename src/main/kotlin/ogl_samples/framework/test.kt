@@ -21,6 +21,7 @@ import org.lwjgl.system.Platform
 import uno.buffer.destroyBuffers
 import uno.buffer.floatBufferBig
 import uno.buffer.intBufferBig
+import uno.caps.Caps
 import uno.caps.Caps.Profile
 
 
@@ -57,8 +58,7 @@ abstract class Test(
             visible = true
             srgb = false
             decorated = true
-            //api = if (this@Test.profile == Profile.ES) "es" else "gl"
-            glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API)
+            api = if (this@Test.profile == Profile.ES) "es" else "gl"
 
             if (version(this@Test.major, this@Test.minor) >= version(3, 2) || this@Test.profile == Profile.ES) {
                 major = this@Test.major
@@ -137,7 +137,7 @@ abstract class Test(
     val keyPressed = BooleanArray(512, { false })
     var error = false
 
-//    lateinit var caps: Caps
+    val caps = Caps(profile)
 
     abstract fun begin(): Boolean
     abstract fun render(): Boolean
@@ -148,7 +148,7 @@ abstract class Test(
         return result
     }
 
-    fun setup(): Boolean {
+    fun run(): Boolean {
 
         if (window.handle == 0L)
             return EXIT_FAILURE

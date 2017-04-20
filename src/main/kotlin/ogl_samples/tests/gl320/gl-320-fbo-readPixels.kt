@@ -25,7 +25,7 @@
 // */
 //
 //fun main(args: Array<String>) {
-//    gl_320_fbo_readPixels().setup()
+//    gl_320_fbo_readPixels().run()
 //}
 //
 //class gl_320_fbo_readPixels : Test("gl-320-fbo-readPixels", Profile.CORE, 3, 2) {

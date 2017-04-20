@@ -3,16 +3,17 @@ package ogl_samples.tests.gl300
 import gli.Texture2d
 import gli.gl
 import glm.L
+import glm.glm
+import glm.mat.Mat4
 import glm.vec._2.Vec2
 import glm.vec._2.Vec2i
 import glm.vec._4.Vec4
-import ogl_samples.framework.Test
-import ogl_samples.framework.semantic
 import ogl_samples.framework.Compiler
+import ogl_samples.framework.Test
 import ogl_samples.framework.glNext.*
 import ogl_samples.framework.glf
+import ogl_samples.framework.semantic
 import org.lwjgl.opengl.ARBFramebufferObject.*
-import org.lwjgl.opengl.ARBVertexArrayObject.glBindVertexArray
 import org.lwjgl.opengl.ARBVertexArrayObject.glGenVertexArrays
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL12.GL_TEXTURE_BASE_LEVEL
@@ -20,18 +21,19 @@ import org.lwjgl.opengl.GL12.GL_TEXTURE_MAX_LEVEL
 import org.lwjgl.opengl.GL13.*
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
-import glm.glm
+import org.lwjgl.opengl.GL30.glDeleteVertexArrays
 import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
 import uno.caps.Caps
 import uno.glf.Vertex_v2fv2f
+import java.nio.IntBuffer
 
 /**
  * Created by elect on 08/04/17.
  */
 
 fun main(args: Array<String>) {
-    gl_300_fbo_multisample().setup()
+    gl_300_fbo_multisample().run()
 }
 
 class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Caps.Profile.COMPATIBILITY, 3, 0) {
@@ -97,7 +99,7 @@ class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Caps.Profile.COMPA
             val vertShaderName = compiler.create(this::class, SHADER_SOURCE + ".vert")
             val fragShaderName = compiler.create(this::class, SHADER_SOURCE + ".frag")
 
-            val programName = glCreateProgram()
+            programName = glCreateProgram()
             glAttachShader(programName, vertShaderName)
             glAttachShader(programName, fragShaderName)
 
@@ -129,7 +131,7 @@ class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Caps.Profile.COMPA
 
     fun initTexture(): Boolean {
 
-        val texture = Texture2d(gli.loadDDS(javaClass.getResource(TEXTURE_DIFFUSE).toURI()))
+        val texture = Texture2d(gli.loadDDS(javaClass.getResource("/$data/$TEXTURE_DIFFUSE").toURI()))
         gl.profile = gl.Profile.GL32
 
         glGenTextures(textureName)
@@ -186,7 +188,7 @@ class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Caps.Profile.COMPA
         glBindBuffer(GL_ARRAY_BUFFER, bufferName)
         glVertexAttribPointer(semantic.attr.POSITION, 2, GL_FLOAT, false, glf.v2fv2f.SIZE, 0)
         glVertexAttribPointer(semantic.attr.TEXCOORD, 2, GL_FLOAT, false, glf.v2fv2f.SIZE, Vec2.SIZE.L)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        glBindBuffer(GL_ARRAY_BUFFER)
 
         glEnableVertexAttribArray(semantic.attr.POSITION)
         glEnableVertexAttribArray(semantic.attr.TEXCOORD)
@@ -195,7 +197,7 @@ class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Caps.Profile.COMPA
         return checkError("initVertexArray")
     }
 
-    override fun render():Boolean    {
+    override fun render(): Boolean {
 
         // Clear the framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
@@ -213,41 +215,66 @@ class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Caps.Profile.COMPA
         // Resolved multisampling
         glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferRenderName)
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebufferResolveName)
-        glBlitFramebuffer(
-                0, 0, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y,
-                0, 0, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y,
-                GL_COLOR_BUFFER_BIT, GL_LINEAR)
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
-
-        glm::ivec2 WindowSize(this->getWindowSize())
+        glBlitFramebuffer(FRAMEBUFFER_SIZE)
+        glBindFramebuffer(GL_FRAMEBUFFER)
 
         // Pass 2
         // Render the colorbuffer from the multisampled framebuffer
-        glViewport(0, 0, WindowSize.x, WindowSize.y)
-        renderFB(ColorTextureName)
+        glViewport(windowSize)
+        renderFB(colorTextureName)
 
         return true
     }
 
-    fun renderFBO(framebuffer:Int):Boolean    {
+    fun renderFBO(framebuffer: IntBuffer): Boolean {
 
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
         glClearColor(0.0f, 0.5f, 1.0f, 1.0f)
         glClear(GL_COLOR_BUFFER_BIT)
 
-        val perspective = glm.perspective(glm.PIf * 0.25f, FRAMEBUFFER_SIZE.x) / FRAMEBUFFER_SIZE.y, 0.1f, 100.0f)
-        glm::mat4 Model = glm::mat4(1.0f)
-        glm::mat4 MVP = Perspective * this->view() * Model
-        glUniformMatrix4fv(UniformMVP, 1, GL_FALSE, &MVP[0][0])
+        val perspective = glm.perspective(glm.PIf * 0.25f, FRAMEBUFFER_SIZE, 0.1f, 100.0f)
+        val model = Mat4()
+        val mvp = perspective * view() * model
+        glUniformMatrix4f(uniformMVP, mvp)
 
-        glViewport(0, 0, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y)
+        glViewport(FRAMEBUFFER_SIZE)
 
         glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, TextureName)
+        glBindTexture(GL_TEXTURE_2D, textureName)
 
-        glBindVertexArray(VertexArrayName)
-        glDrawArrays(GL_TRIANGLES, 0, VertexCount)
+        glBindVertexArray(vertexArrayName)
+        glDrawArrays(vertexCount)
 
-        this->checkError("renderFBO")
+        return checkError("renderFBO")
+    }
+
+    fun renderFB(texture2DName: IntBuffer) {
+
+        val perspective = glm.perspective(glm.PIf * 0.25f, windowSize, 0.1f, 100.0f)
+        val model = Mat4()
+        val mvp = perspective * view() * model
+        glUniformMatrix4f(uniformMVP, mvp)
+
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, texture2DName)
+
+        glBindVertexArray(vertexArrayName)
+        glDrawArrays(vertexCount)
+
+        checkError("renderFB")
+    }
+
+    override fun end(): Boolean {
+
+        glDeleteBuffers(bufferName)
+        glDeleteProgram(programName)
+        glDeleteTextures(textureName)
+        glDeleteTextures(colorTextureName)
+        glDeleteRenderbuffers(colorRenderbufferName)
+        glDeleteFramebuffers(framebufferRenderName)
+        glDeleteFramebuffers(framebufferResolveName)
+        glDeleteVertexArrays(vertexArrayName)
+
+        return true
     }
 }

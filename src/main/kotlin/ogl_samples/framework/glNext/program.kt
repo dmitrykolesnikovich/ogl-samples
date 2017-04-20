@@ -91,8 +91,10 @@ object ProgramB {
 
     var name = 0
 
-    val String.location
+    var String.location
         get() = glGetUniformLocation(name, this)
+        set(value) = glBindAttribLocation(name, value, this)
+
     val String.blockIndex
         get() = glGetUniformBlockIndex(name, this)
 
@@ -103,6 +105,8 @@ object ProgramB {
     }
 
     infix fun Int.blockBinding(uniformBlockBinding: Int) = glUniformBlockBinding(name, this, uniformBlockBinding)
+
+    fun link() = glLinkProgram(name)
 }
 
 

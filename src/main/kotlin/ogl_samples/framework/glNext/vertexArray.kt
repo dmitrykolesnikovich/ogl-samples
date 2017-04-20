@@ -5,11 +5,9 @@ import ogl_samples.framework.VertexAttribute
 import ogl_samples.framework.VertexLayout
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL15.*
-import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import java.nio.IntBuffer
-import kotlin.reflect.KClass
 
 /**
  * Created by elect on 18/04/17.
@@ -61,8 +59,22 @@ object VertexArray {
 }
 
 
-inline fun withVertexLayout(buffer: IntBuffer, format: VertexLayout, block: () -> Unit) {
-    glBindBuffer(GL_ARRAY_BUFFER, buffer[0])
+inline fun withVertexLayout(array: Int, element: Int, format: VertexLayout, block: () -> Unit) {
+    glBindBuffer(GL_ARRAY_BUFFER, array)
+    for (attr in format.attribute) {
+        glEnableVertexAttribArray(attr.index)
+        glVertexAttribPointer(attr.index, attr.size, attr.type, attr.normalized, attr.interleavedStride, attr.pointer)
+    }
+    glBindBuffer(GL_ARRAY_BUFFER, 0)
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element)
+    block()
+    for (attr in format.attribute)
+        glDisableVertexAttribArray(attr.index)
+}
+
+inline fun withVertexLayout(array: IntBuffer, format: VertexLayout, block: () -> Unit) = withVertexLayout(array[0], format, block)
+inline fun withVertexLayout(array: Int, format: VertexLayout, block: () -> Unit) {
+    glBindBuffer(GL_ARRAY_BUFFER, array)
     for (attr in format.attribute) {
         glEnableVertexAttribArray(attr.index)
         glVertexAttribPointer(attr.index, attr.size, attr.type, attr.normalized, attr.interleavedStride, attr.pointer)

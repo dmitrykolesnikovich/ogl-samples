@@ -14,8 +14,6 @@ import uno.buffer.intBufferBig
 val mat3Buffer = floatBufferBig(9)
 val mat4Buffer = floatBufferBig(16)
 val vec4Buffer = floatBufferBig(4)
-val clearColor = floatBufferBig(4)
-val clearDepth = floatBufferBig(1)
 val int = intBufferBig(1)
 
 
@@ -78,6 +76,6 @@ class GlfwWindow(windowSize: Vec2i, title: String) {
 
         // Terminate GLFW and free the error callback
         glfwTerminate()
-        glfwSetErrorCallback(null).free()
+//        glfwSetErrorCallback(null).free()
     }
 }
