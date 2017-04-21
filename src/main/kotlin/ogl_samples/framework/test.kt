@@ -23,6 +23,7 @@ import uno.buffer.floatBufferBig
 import uno.buffer.intBufferBig
 import uno.caps.Caps
 import uno.caps.Caps.Profile
+import java.nio.IntBuffer
 
 
 /**
@@ -220,6 +221,7 @@ abstract class Test(
         return error == GL_NO_ERROR
     }
 
+    fun checkFramebuffer(framebufferName: IntBuffer) = checkFramebuffer(framebufferName[0])
     fun checkFramebuffer(framebufferName: Int): Boolean {
         val status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         return if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -268,7 +270,7 @@ abstract class Test(
 
     fun checkGLVersion(majorVersionRequire: Int, minorVersionRequire: Int): Boolean {
         val majorVersionContext = glGetInteger(GL_MAJOR_VERSION)
-        val minorVersionContext = glGetInteger(GL_MAJOR_VERSION)
+        val minorVersionContext = glGetInteger(GL_MINOR_VERSION)
         println("OpenGL Version Needed $majorVersionRequire.$minorVersionRequire ( $majorVersionContext.$minorVersionContext Found )")
         return version(majorVersionContext, minorVersionContext) >= version(majorVersionContext, minorVersionContext)
     }

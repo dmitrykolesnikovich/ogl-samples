@@ -1,6 +1,9 @@
-package ogl_samples.tests.es300
+package ogl_samples.test_glNext
 
-import glm.f
+/**
+ * Created by GBarbieri on 21.04.2017.
+ */
+
 import glm.glm
 import glm.mat.Mat4
 import glm.vec._3.Vec3
@@ -14,18 +17,16 @@ import org.lwjgl.opengl.ARBFramebufferObject.*
 import org.lwjgl.opengl.ARBMapBufferRange.GL_MAP_INVALIDATE_BUFFER_BIT
 import org.lwjgl.opengl.ARBMapBufferRange.GL_MAP_WRITE_BIT
 import org.lwjgl.opengl.ARBUniformBufferObject.*
-import org.lwjgl.opengl.ARBVertexArrayObject.*
+import org.lwjgl.opengl.ARBVertexArrayObject.glBindVertexArray
+import org.lwjgl.opengl.ARBVertexArrayObject.glDeleteVertexArrays
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL12.GL_TEXTURE_BASE_LEVEL
-import org.lwjgl.opengl.GL12.GL_TEXTURE_MAX_LEVEL
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL14.GL_DEPTH_COMPONENT24
 import org.lwjgl.opengl.GL15.*
-import org.lwjgl.opengl.GL20.*
+import org.lwjgl.opengl.GL20.glUseProgram
 import org.lwjgl.opengl.GL21.GL_SRGB
 import org.lwjgl.opengl.GL21.GL_SRGB8_ALPHA8
-import org.lwjgl.opengl.GL31.glDrawArraysInstanced
 import uno.buffer.byteBufferBig
 import uno.buffer.destroy
 import uno.buffer.destroyBuffers
@@ -37,10 +38,10 @@ import uno.caps.Caps
  */
 
 fun main(args: Array<String>) {
-    es_300_fbo_srgb().run()
+    es_300_fbo_srgb_glNext().run()
 }
 
-class es_300_fbo_srgb : Test("es-300-fbo-srgb", Caps.Profile.ES, 3, 0) {
+class es_300_fbo_srgb_glNext : Test("es-300-fbo-srgb", Caps.Profile.ES, 3, 0) {
 
     val SHADER_SOURCE_RENDER = "es-300/fbo-srgb"
     val SHADER_SOURCE_SPLASH = "es-300/fbo-srgb-blit"
@@ -109,47 +110,45 @@ class es_300_fbo_srgb : Test("es-300-fbo-srgb", Caps.Profile.ES, 3, 0) {
 
         val shaderName = mutableListOf<Int>()
 
-        if (validated) {
+        initPrograms(programName) {
 
-            shaderName += compiler.create(this::class, SHADER_SOURCE_RENDER + ".vert")
-            shaderName += compiler.create(this::class, SHADER_SOURCE_RENDER + ".frag")
+            if (validated) {
 
-            programName[Program.RENDER] = glCreateProgram()
-            glAttachShader(programName[Program.RENDER], shaderName[Shader.VERT_RENDER])
-            glAttachShader(programName[Program.RENDER], shaderName[Shader.FRAG_RENDER])
-            glLinkProgram(programName[Program.RENDER])
+                shaderName += compiler.create(this::class, SHADER_SOURCE_RENDER + ".vert")
+                shaderName += compiler.create(this::class, SHADER_SOURCE_RENDER + ".frag")
+
+                with(Program.RENDER) {
+                    this += shaderName[Shader.VERT_RENDER]
+                    this += shaderName[Shader.FRAG_RENDER]
+                    link()
+                }
+            }
+
+            if (validated) {
+
+                shaderName += compiler.create(this::class, SHADER_SOURCE_SPLASH + ".vert")
+                shaderName += compiler.create(this::class, SHADER_SOURCE_SPLASH + ".frag")
+
+                with(Program.SPLASH) {
+                    attach(shaderName[Shader.VERT_SPLASH])
+                    attach(shaderName[Shader.FRAG_SPLASH])
+                    link()
+                }
+            }
+
+            if (validated) {
+
+                validated = validated && compiler.check()
+                validated = validated && compiler.checkProgram(programName[Program.RENDER])
+                validated = validated && compiler.checkProgram(programName[Program.SPLASH])
+            }
+
+            if (validated) {
+
+                using(Program.RENDER) { "transform".blockIndex = semantic.uniform.TRANSFORM0 }
+                using(Program.SPLASH) { "Diffuse".location.int = semantic.sampler.DIFFUSE }
+            }
         }
-
-        if (validated) {
-
-            shaderName += compiler.create(this::class, SHADER_SOURCE_SPLASH + ".vert")
-            shaderName += compiler.create(this::class, SHADER_SOURCE_SPLASH + ".frag")
-
-            programName[Program.SPLASH] = glCreateProgram()
-            glAttachShader(programName[Program.SPLASH], shaderName[Shader.VERT_SPLASH])
-            glAttachShader(programName[Program.SPLASH], shaderName[Shader.FRAG_SPLASH])
-            glLinkProgram(programName[Program.SPLASH])
-        }
-
-        if (validated) {
-
-            validated = validated && compiler.check()
-            validated = validated && compiler checkProgram programName[Program.RENDER]
-            validated = validated && compiler checkProgram programName[Program.SPLASH]
-        }
-
-        if (validated) {
-
-            uniformTransform = glGetUniformBlockIndex(programName[Program.RENDER], "transform")
-            uniformDiffuse = glGetUniformLocation(programName[Program.SPLASH], "Diffuse")
-
-            glUseProgram(programName[Program.RENDER])
-            glUniformBlockBinding(programName[Program.RENDER], uniformTransform, semantic.uniform.TRANSFORM0)
-
-            glUseProgram(programName[Program.SPLASH])
-            glUniform1i(uniformDiffuse, semantic.sampler.DIFFUSE)
-        }
-
         return validated && checkError("initProgram")
     }
 
@@ -160,18 +159,15 @@ class es_300_fbo_srgb : Test("es-300-fbo-srgb", Caps.Profile.ES, 3, 0) {
         val vertexData = byteBufferBig(vertexCount * Vec3.SIZE)
         vertices.forEachIndexed { i, it -> it.to(vertexData, i * Vec3.SIZE) }
 
-        glGenBuffers(bufferName)
+        initBuffers(bufferName) {
 
-        glBindBuffer(GL_ARRAY_BUFFER, bufferName[Buffer.VERTEX])
-        glBufferData(GL_ARRAY_BUFFER, vertexData, GL_STATIC_DRAW)
-        glBindBuffer(GL_ARRAY_BUFFER)
+            withArrayAt(Buffer.VERTEX) { data(vertexData, GL_STATIC_DRAW) }
 
-        val uniformBufferOffset = glGetInteger(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT)
-        val uniformBlockSize = glm.max(Mat4.SIZE, uniformBufferOffset)
+            val uniformBufferOffset = glGetInteger(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT)
+            val uniformBlockSize = glm.max(Mat4.SIZE, uniformBufferOffset)
 
-        glBindBuffer(GL_UNIFORM_BUFFER, bufferName[Buffer.TRANSFORM])
-        glBufferData(GL_UNIFORM_BUFFER, uniformBlockSize, GL_DYNAMIC_DRAW)
-        glBindBuffer(GL_UNIFORM_BUFFER)
+            withUniformAt(Buffer.TRANSFORM) { data(uniformBlockSize, GL_STATIC_DRAW) }
+        }
 
         vertexData.destroy()
 
@@ -182,59 +178,55 @@ class es_300_fbo_srgb : Test("es-300-fbo-srgb", Caps.Profile.ES, 3, 0) {
 
         val windowSize = windowSize * framebufferScale
 
-        glGenTextures(textureName)
+        initTextures2d(textureName) {
 
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, textureName[Texture.COLORBUFFER])
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexStorage2D(GL_TEXTURE_2D, GL_SRGB8_ALPHA8, windowSize)
-
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, textureName[Texture.RENDERBUFFER])
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        glTexStorage2D(GL_TEXTURE_2D, GL_DEPTH_COMPONENT24, windowSize)
-
+            at(Texture.COLORBUFFER) {
+                levels = 0..0
+                minFilter = linear
+                magFilter = linear
+                storage(GL_SRGB8_ALPHA8, windowSize)
+            }
+            at(Texture.RENDERBUFFER) {
+                levels = 0..0
+                minFilter = nearest
+                magFilter = nearest
+                storage(GL_DEPTH_COMPONENT24, windowSize)
+            }
+        }
         return true
     }
 
     fun initVertexArray(): Boolean {
 
-        glGenVertexArrays(vertexArrayName)
-        glBindVertexArray(vertexArrayName[Program.RENDER])
-        glBindBuffer(GL_ARRAY_BUFFER, bufferName[Buffer.VERTEX])
-        glVertexAttribPointer(glf.pos3[0])
-        glBindBuffer(GL_ARRAY_BUFFER)
+        initVertexArrays(vertexArrayName) {
 
-        glEnableVertexAttribArray(semantic.attr.POSITION)
-        glBindVertexArray()
-
-        glBindVertexArray(vertexArrayName[Program.SPLASH])
-        glBindVertexArray()
-
+            at(Program.RENDER) {
+                array(bufferName[Buffer.VERTEX], glf.pos3)
+            }
+        }
         return true
     }
 
     fun initFramebuffer(): Boolean {
 
-        glGenFramebuffers(framebufferName)
-        glBindFramebuffer(GL_FRAMEBUFFER, framebufferName)
-        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureName[Texture.COLORBUFFER])
-        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, textureName[Texture.RENDERBUFFER])
+        var framebufferEncoding = 0
+        var check = true
 
-        val framebufferEncoding = glGetFramebufferAttachmentParameteri(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING)
+        initFramebuffer(framebufferName) {
+
+            texture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureName[Texture.COLORBUFFER])
+            texture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureName[Texture.RENDERBUFFER])
+
+            framebufferEncoding = GL_COLOR_ATTACHMENT0.colorEncoding
+            check = checkFramebuffer(name)
+        }
+
         if (framebufferEncoding != GL_SRGB)
             return false
 
-        if (!checkFramebuffer(framebufferName))
+        if (!check)
             return false
 
-        glBindFramebuffer(GL_FRAMEBUFFER)
 /*
 		GLint Encoding = -1;
 		glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_BACK_LEFT, GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING, &Encoding);
@@ -247,9 +239,9 @@ class es_300_fbo_srgb : Test("es-300-fbo-srgb", Caps.Profile.ES, 3, 0) {
 
     override fun render(): Boolean {
 
-        run {
-            glBindBuffer(GL_UNIFORM_BUFFER, bufferName[Buffer.TRANSFORM])
-            val pointer = glMapBufferRange(GL_UNIFORM_BUFFER, Mat4.SIZE, GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT)
+        withUniformBuffer(bufferName[Buffer.TRANSFORM]) {
+
+            val pointer = mapRange(Mat4.SIZE, GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT)
 
             //glm::mat4 Projection = glm::perspectiveFov(glm::pi<float>() * 0.25f, 640.f, 480.f, 0.1f, 100.0f);
             val projection = glm.perspective(glm.PIf * 0.25f, windowSize, 0.1f, 100.0f)
@@ -262,15 +254,18 @@ class es_300_fbo_srgb : Test("es-300-fbo-srgb", Caps.Profile.ES, 3, 0) {
 
         // Render to a sRGB framebuffer object.
         run {
-            glEnable(GL_DEPTH_TEST)
-            glDepthFunc(GL_LEQUAL)
+            depth {
+                test = true
+                func = lEqual
+            }
 
             glViewport(windowSize * framebufferScale)
             glBindFramebuffer(GL_FRAMEBUFFER, framebufferName)
 
-            val depth = 1.0f
-            glClearBuffer(GL_DEPTH, depth)
-            glClearBuffer(GL_COLOR, Vec4(1.0f, 0.5f, 0.0f, 1.0f))
+            clear {
+                depth(1f)
+                color(1.0f, 0.5f, 0.0f, 1.0f)
+            }
 
             glUseProgram(programName[Program.RENDER])
             glBindVertexArray(vertexArrayName[Program.RENDER])

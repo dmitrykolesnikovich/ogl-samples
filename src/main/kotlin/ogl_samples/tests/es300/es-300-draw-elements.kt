@@ -60,8 +60,6 @@ class es_300_draw_elements : Test("es-300-draw-elements", Profile.ES, 3, 0) {
 
     val projection = Mat4()
 
-    val buffers = intBufferBig(1)
-
     override fun begin(): Boolean {
 
         var validated = true
@@ -109,7 +107,7 @@ class es_300_draw_elements : Test("es-300-draw-elements", Profile.ES, 3, 0) {
             glLinkProgram(programName)
 
             validated = validated && compiler.check()
-            validated = validated && compiler.checkProgram(programName)
+            validated = validated && compiler checkProgram programName
         }
 
         // Get variables locations
@@ -125,10 +123,10 @@ class es_300_draw_elements : Test("es-300-draw-elements", Profile.ES, 3, 0) {
             glUseProgram(programName)
 
             // Set uniform value
-            glUniform4f(uniformDiffuse, Vec4(1.0f, 0.5f, 0.0f, 1.0f))
+            glUniform(uniformDiffuse, Vec4(1.0f, 0.5f, 0.0f, 1.0f))
 
             // Unbind the program
-            glUseProgram(0)
+            glUseProgram()
         }
 
         return validated && checkError("initProgram")
@@ -154,7 +152,7 @@ class es_300_draw_elements : Test("es-300-draw-elements", Profile.ES, 3, 0) {
         glGenVertexArrays(vertexArrayName)
         glBindVertexArray(vertexArrayName)
         glBindBuffer(GL_ARRAY_BUFFER, bufferName[buffer.VERTEX])
-        glVertexAttribPointer(semantic.attr.POSITION, Vec2.length, GL_FLOAT, false, Vec2.SIZE, 0)
+        glVertexAttribPointer(glf.pos2[0])
         glBindBuffer(GL_ARRAY_BUFFER)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferName[buffer.ELEMENT])
 
@@ -166,7 +164,7 @@ class es_300_draw_elements : Test("es-300-draw-elements", Profile.ES, 3, 0) {
 
     override fun render(): Boolean {
 
-        buffers[0] = GL_BACK
+        val buffers = GL_BACK
         glDrawBuffers(buffers)
 
         // Compute the MVP (Model View Projection matrix)
@@ -178,7 +176,7 @@ class es_300_draw_elements : Test("es-300-draw-elements", Profile.ES, 3, 0) {
         glViewport(windowSize)
 
         // Clear color buffer with black
-        glClearColor()
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
         glClearDepthf()
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
@@ -201,7 +199,7 @@ class es_300_draw_elements : Test("es-300-draw-elements", Profile.ES, 3, 0) {
         glDeleteVertexArrays(vertexArrayName)
         glDeleteProgram(programName)
 
-        destroyBuffers(bufferName, vertexArrayName, buffers)
+        destroyBuffers(bufferName, vertexArrayName)
 
         return true
     }

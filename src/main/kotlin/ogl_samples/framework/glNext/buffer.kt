@@ -3,20 +3,26 @@ package ogl_samples.framework.glNext
 import glm.L
 import glm.mat.Mat4
 import glm.set
-import glm.size
-import glm.vec._2.Vec2i
 import ogl_samples.framework.int
 import ogl_samples.framework.mat4Buffer
 import org.lwjgl.opengl.ARBUniformBufferObject.GL_UNIFORM_BUFFER
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL30.*
+import org.lwjgl.system.MemoryUtil.NULL
 import java.nio.*
 
 /**
  * Created by elect on 18/04/17.
  */
 
+
+fun glBufferData(target: Int, size: Int, usage: Int) = nglBufferData(target, size.L, NULL, usage);
+
+fun glMapBufferRange(target: Int, length: Int, access: Int): ByteBuffer =
+        glMapBufferRange(target, 0, length.L, access)
+fun glMapBufferRange(target: Int, offset: Int, length: Int, access: Int): ByteBuffer =
+        glMapBufferRange(target, offset.L, length.L, access)
 
 // ----- Mat4 -----
 fun glBufferData(target: Int, mat: Mat4, usage: Int) = glBufferData(target, mat to mat4Buffer, usage)
@@ -126,8 +132,11 @@ object Buffer {
     fun subData(mat: Mat4) = glBufferSubData(target, 0, mat to mat4Buffer)
 
 
-    fun range(index: Int, offset: Int, size: Int) = glBindBufferRange(target, index, name, offset.L, size.L)
-    fun base(index: Int) = glBindBufferBase(target, index, 0)
+    fun bindRange(index: Int, offset: Int, size: Int) = glBindBufferRange(target, index, name, offset.L, size.L)
+    fun bindBase(index: Int) = glBindBufferBase(target, index, 0)
+
+    fun mapRange(length: Int, access: Int) = mapRange(0, length, access)
+    fun mapRange(offset: Int, length: Int, access: Int): ByteBuffer = glMapBufferRange(target, offset.L, length.L, access)
 }
 
 object Buffers {
@@ -192,5 +201,12 @@ object Buffers {
         Buffer.name = buffers[bufferIndex] // bind
         Buffer.block()
         GL15.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+    }
+
+    fun withUniformAt(bufferIndex: Int, block: Buffer.() -> Unit) {
+        Buffer.target = GL_UNIFORM_BUFFER
+        Buffer.name = buffers[bufferIndex] // bind
+        Buffer.block()
+        GL15.glBindBuffer(GL_UNIFORM_BUFFER, 0)
     }
 }

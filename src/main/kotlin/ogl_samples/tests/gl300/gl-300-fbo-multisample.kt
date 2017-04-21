@@ -108,7 +108,7 @@ class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Caps.Profile.COMPA
             glLinkProgram(programName)
 
             validated = validated && compiler.check()
-            validated = validated && compiler.checkProgram(programName)
+            validated = validated && compiler checkProgram programName
         }
 
         if (validated) {
@@ -201,7 +201,7 @@ class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Caps.Profile.COMPA
 
         // Clear the framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        glClearBufferfv(GL_COLOR, 0, Vec4(1.0f, 0.5f, 0.0f, 1.0f))
+        glClearBuffer(GL_COLOR, Vec4(1.0f, 0.5f, 0.0f, 1.0f))
 
         glUseProgram(programName)
         glUniform1i(uniformDiffuse, semantic.sampler.DIFFUSE)

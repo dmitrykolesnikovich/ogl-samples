@@ -1,9 +1,9 @@
 package ogl_samples.framework.glNext
 
-import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.glDrawArrays
 import org.lwjgl.opengl.GL11.glDrawElements
+import org.lwjgl.opengl.GL31
 import org.lwjgl.opengl.GL32.glDrawElementsBaseVertex
 
 /**
@@ -19,3 +19,6 @@ fun glDrawElements(mode: Int, count: Int, type: Int) = glDrawElements(mode, coun
 
 fun glDrawElementsBaseVertex(count: Int, type: Int, indices_buffer_offset: Long, basevertex: Int) =
         glDrawElementsBaseVertex(GL11.GL_TRIANGLES, count, type, indices_buffer_offset, basevertex)
+
+
+fun glDrawArraysInstanced(count: Int, primCount:Int) = GL31.glDrawArraysInstanced(GL11.GL_TRIANGLES, 0, count, primCount)

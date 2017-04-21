@@ -15,6 +15,7 @@ val mat3Buffer = floatBufferBig(9)
 val mat4Buffer = floatBufferBig(16)
 val vec4Buffer = floatBufferBig(4)
 val int = intBufferBig(1)
+val float = floatBufferBig(1)
 
 
 object windowHint {

@@ -1,7 +1,9 @@
 package ogl_samples.framework.glNext
 
+import glm.set
 import glm.vec._2.Vec2i
 import glm.vec._4.Vec4
+import ogl_samples.framework.float
 import ogl_samples.framework.mat4Buffer
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.glClearDepth
@@ -15,7 +17,13 @@ import org.lwjgl.opengl.GL41
  */
 
 
-fun glClearBufferfv(buffer: Int, drawbuffer: Int, value: Vec4) = glClearBufferfv(buffer, drawbuffer, value to mat4Buffer)
+fun glClearBuffer(buffer: Int, value: Float) = glClearBuffer(buffer, 0, value)
+fun glClearBuffer(buffer: Int, drawbuffer: Int, value: Float) {
+    float[0] = value
+    glClearBufferfv(buffer, drawbuffer, float)
+}
+fun glClearBuffer(buffer: Int, value: Vec4) = glClearBuffer(buffer, 0, value)
+fun glClearBuffer(buffer: Int, drawbuffer: Int, value: Vec4) = glClearBufferfv(buffer, drawbuffer, value to mat4Buffer)
 
 fun glViewport(size: Vec2i) = glViewport(0, 0, size.x, size.y)
 

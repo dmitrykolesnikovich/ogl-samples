@@ -5,6 +5,7 @@ import ogl_samples.framework.VertexAttribute
 import ogl_samples.framework.VertexLayout
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL15.*
+import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import java.nio.IntBuffer
@@ -19,21 +20,30 @@ fun glBindVertexArray(vertexArray: IntBuffer) = glBindVertexArray(vertexArray[0]
 fun glBindVertexArray() = glBindVertexArray(0)
 
 
+inline fun initVertexArrays(vertexArrays: IntBuffer, block: VertexArrays.() -> Unit) {
+    VertexArrays.names = vertexArrays
+    VertexArrays.block()
+    glBindVertexArray(0)
+}
+
 inline fun initVertexArray(vertexArray: IntBuffer, block: VertexArray.() -> Unit) {
     glGenVertexArrays(vertexArray)
-    glBindVertexArray(vertexArray[0])
+    VertexArray.name = vertexArray[0]   // bind
     VertexArray.block()
     glBindVertexArray(0)
 }
 
 inline fun withVertexArray(vertexArray: IntBuffer, block: VertexArray.() -> Unit) = withVertexArray(vertexArray[0], block)
 inline fun withVertexArray(vertexArray: Int, block: VertexArray.() -> Unit) {
-    glBindVertexArray(vertexArray)
+    VertexArray.name = vertexArray   // bind
     VertexArray.block()
     glBindVertexArray(0)
 }
 
 object VertexArray {
+
+    var name = 0
+        set(value) = glBindVertexArray(value)
 
     fun array(array: Int, format: VertexLayout) {
         glBindBuffer(GL15.GL_ARRAY_BUFFER, array)
@@ -56,6 +66,16 @@ object VertexArray {
 
     fun element(element: Int) = glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element)
     fun element(element: IntBuffer) = glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element[0])
+}
+
+object VertexArrays {
+
+    lateinit var names: IntBuffer
+
+    fun at(index: Int, block: VertexArray.() -> Unit) {
+        VertexArray.name = names[index]   // bind
+        VertexArray.block()
+    }
 }
 
 
@@ -123,7 +143,7 @@ fun glVertexAttribPointer(attribute: VertexAttribute) =
 
 fun glVertexAttribPointer(layout: VertexLayout, offset: Int) = glVertexAttribPointer(layout[0], offset)
 fun glVertexAttribPointer(attribute: VertexAttribute, offset: Int) =
-        glVertexAttribPointer(
+        GL20.glVertexAttribPointer(
                 attribute.index,
                 attribute.size,
                 attribute.type,

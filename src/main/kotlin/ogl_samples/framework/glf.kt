@@ -29,6 +29,11 @@ object glf {
                 VertexAttribute(semantic.attr.POSITION, Vec2.length, GL11.GL_FLOAT, false, Vec2.SIZE, 0))
     }
 
+    object pos3 : VertexLayout {
+        override var attribute = arrayOf(
+                VertexAttribute(semantic.attr.POSITION, Vec3.length, GL11.GL_FLOAT, false, Vec3.SIZE, 0))
+    }
+
     object pos4 : VertexLayout {
         override var attribute = arrayOf(
                 VertexAttribute(semantic.attr.POSITION, Vec4.length, GL11.GL_FLOAT, false, Vec4.SIZE, 0))

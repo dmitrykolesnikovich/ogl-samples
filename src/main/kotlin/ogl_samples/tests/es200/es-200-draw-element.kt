@@ -90,7 +90,7 @@ class es_200_draw_elements : Test("es-200-draw-elements", Profile.ES, 2, 0) {
             glLinkProgram(programName)
 
             validated = validated && compiler.check()
-            validated = validated && compiler.checkProgram(programName)
+            validated = validated && compiler checkProgram programName
         }
 
         // Get variables locations
@@ -106,10 +106,10 @@ class es_200_draw_elements : Test("es-200-draw-elements", Profile.ES, 2, 0) {
             glUseProgram(programName)
 
             // Set uniform value
-            glUniform4f(uniformDiffuse, Vec4(1.0f, 0.5f, 0.0f, 1.0f))
+            glUniform(uniformDiffuse, Vec4(1.0f, 0.5f, 0.0f, 1.0f))
 
             // Unbind the program
-            glUseProgram(0)
+            glUseProgram()
         }
 
         return validated && checkError("initProgram")
@@ -152,7 +152,7 @@ class es_200_draw_elements : Test("es-200-draw-elements", Profile.ES, 2, 0) {
         glUniformMatrix4f(uniformMVP, mvp)
 
         glBindBuffer(GL_ARRAY_BUFFER, bufferName[Buffer.VERTEX])
-        glVertexAttribPointer(semantic.attr.POSITION, Vec2.length, GL_FLOAT, false, Vec2.SIZE, 0)
+        glVertexAttribPointer(glf.pos2[0])
         glBindBuffer(GL_ARRAY_BUFFER)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferName[Buffer.ELEMENT])
 
