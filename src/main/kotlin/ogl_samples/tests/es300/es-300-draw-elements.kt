@@ -152,7 +152,7 @@ class es_300_draw_elements : Test("es-300-draw-elements", Profile.ES, 3, 0) {
         glGenVertexArrays(vertexArrayName)
         glBindVertexArray(vertexArrayName)
         glBindBuffer(GL_ARRAY_BUFFER, bufferName[buffer.VERTEX])
-        glVertexAttribPointer(glf.pos2[0])
+        glVertexAttribPointer(glf.pos2)
         glBindBuffer(GL_ARRAY_BUFFER)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferName[buffer.ELEMENT])
 

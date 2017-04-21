@@ -186,8 +186,8 @@ class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Caps.Profile.COMPA
         glGenVertexArrays(vertexArrayName)
         glBindVertexArray(vertexArrayName)
         glBindBuffer(GL_ARRAY_BUFFER, bufferName)
-        glVertexAttribPointer(semantic.attr.POSITION, 2, GL_FLOAT, false, glf.v2fv2f.SIZE, 0)
-        glVertexAttribPointer(semantic.attr.TEXCOORD, 2, GL_FLOAT, false, glf.v2fv2f.SIZE, Vec2.SIZE.L)
+        glVertexAttribPointer(glf.pos2_tc2)
+        glVertexAttribPointer(glf.pos2_tc2[1])
         glBindBuffer(GL_ARRAY_BUFFER)
 
         glEnableVertexAttribArray(semantic.attr.POSITION)
