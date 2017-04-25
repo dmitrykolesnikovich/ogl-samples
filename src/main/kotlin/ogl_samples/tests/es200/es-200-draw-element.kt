@@ -6,7 +6,6 @@ import glm.mat.Mat4
 import glm.vec._2.Vec2
 import glm.vec._4.Vec4
 import ogl_samples.framework.*
-import ogl_samples.framework.glNext.*
 import org.lwjgl.opengl.ARBES2Compatibility.glClearDepthf
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
@@ -15,6 +14,8 @@ import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
 import uno.buffer.shortBufferOf
 import uno.caps.Caps.Profile
+import uno.glf.glf
+import uno.gln.*
 
 /**
  * Created by GBarbieri on 27.03.2017.
@@ -24,7 +25,7 @@ fun main(args: Array<String>) {
     es_200_draw_elements().run()
 }
 
-class es_200_draw_elements : Test("es-200-draw-elements", Profile.ES, 2, 0) {
+private class es_200_draw_elements : Test("es-200-draw-elements", Profile.ES, 2, 0) {
 
     val SHADER_SOURCE = "/es-200/flat-color"
 
@@ -149,7 +150,7 @@ class es_200_draw_elements : Test("es-200-draw-elements", Profile.ES, 2, 0) {
         glUseProgram(programName)
 
         // Set the value of MVP uniform.
-        glUniformMatrix4f(uniformMVP, mvp)
+        glUniform(uniformMVP, mvp)
 
         glBindBuffer(GL_ARRAY_BUFFER, bufferName[Buffer.VERTEX])
         glVertexAttribPointer(glf.pos2[0])

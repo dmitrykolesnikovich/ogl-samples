@@ -7,11 +7,7 @@ package ogl_samples.test_glNext
 import glm.glm
 import glm.mat.Mat4
 import glm.vec._3.Vec3
-import glm.vec._4.Vec4
 import ogl_samples.framework.Test
-import ogl_samples.framework.generateIcosahedron
-import ogl_samples.framework.glNext.*
-import ogl_samples.framework.glf
 import ogl_samples.framework.semantic
 import org.lwjgl.opengl.ARBFramebufferObject.*
 import org.lwjgl.opengl.ARBMapBufferRange.GL_MAP_INVALIDATE_BUFFER_BIT
@@ -31,17 +27,20 @@ import uno.buffer.byteBufferBig
 import uno.buffer.destroy
 import uno.buffer.destroyBuffers
 import uno.buffer.intBufferBig
-import uno.caps.Caps
+import uno.caps.Caps.Profile
+import uno.glf.generateIcosahedron
+import uno.glf.glf
+import uno.gln.*
 
 /**
  * Created by GBarbieri on 30.03.2017.
  */
 
 fun main(args: Array<String>) {
-    es_300_fbo_srgb_glNext().run()
+    es_300_fbo_srgb().run()
 }
 
-class es_300_fbo_srgb_glNext : Test("es-300-fbo-srgb", Caps.Profile.ES, 3, 0) {
+private class es_300_fbo_srgb : Test("es-300-fbo-srgb", Profile.ES, 3, 0) {
 
     val SHADER_SOURCE_RENDER = "es-300/fbo-srgb"
     val SHADER_SOURCE_SPLASH = "es-300/fbo-srgb-blit"

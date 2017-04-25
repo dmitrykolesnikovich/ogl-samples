@@ -28,7 +28,7 @@
 //    gl_320_fbo_readPixels().run()
 //}
 //
-//class gl_320_fbo_readPixels : Test("gl-320-fbo-readPixels", Profile.CORE, 3, 2) {
+//private class gl_320_fbo_readPixels : Test("gl-320-fbo-readPixels", Profile.CORE, 3, 2) {
 //
 //    val SHADER_ROOT = "gl-320"
 //    val SHADER_TEXTURE = "fbo-readpixels-sample"

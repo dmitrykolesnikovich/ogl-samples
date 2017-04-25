@@ -3,11 +3,11 @@ package ogl_samples.tests.es300
 import glm.BYTES
 import glm.glm
 import glm.mat.Mat4
-import glm.set
 import glm.vec._2.Vec2
 import glm.vec._4.Vec4
-import ogl_samples.framework.*
-import ogl_samples.framework.glNext.*
+import ogl_samples.framework.Compiler
+import ogl_samples.framework.Test
+import ogl_samples.framework.semantic
 import org.lwjgl.opengl.ARBES2Compatibility.glClearDepthf
 import org.lwjgl.opengl.ARBVertexArrayObject.*
 import org.lwjgl.opengl.GL11.*
@@ -18,6 +18,8 @@ import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
 import uno.buffer.intBufferOf
 import uno.caps.Caps.Profile
+import uno.glf.glf
+import uno.gln.*
 
 /**
  * Created by GBarbieri on 30.03.2017.
@@ -27,7 +29,7 @@ fun main(args: Array<String>) {
     es_300_draw_elements().run()
 }
 
-class es_300_draw_elements : Test("es-300-draw-elements", Profile.ES, 3, 0) {
+private class es_300_draw_elements : Test("es-300-draw-elements", Profile.ES, 3, 0) {
 
     val SHADER_SOURCE = "es-300/flat-color"
     val FRAGMENT_SHADER_SOURCE_FAIL = "es-300/flat-color-fail.frag"

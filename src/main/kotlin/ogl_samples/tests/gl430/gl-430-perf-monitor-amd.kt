@@ -2,10 +2,10 @@ package ogl_samples.tests.gl430
 
 import glm.BYTES
 import ogl_samples.framework.Test
-import ogl_samples.framework.glf
 import uno.buffer.floatBufferOf
 import uno.buffer.shortBufferOf
-import uno.caps.Caps
+import uno.caps.Caps.Profile
+import uno.glf.glf
 
 /**
  * Created by elect on 17/04/17.
@@ -15,7 +15,7 @@ fun main(args: Array<String>) {
     gl_430_perf_monitor_amd().run()
 }
 
-class gl_430_perf_monitor_amd : Test("gl-430-perf-monitor-amd", Caps.Profile.CORE, 4, 3) {
+private class gl_430_perf_monitor_amd : Test("gl-430-perf-monitor-amd", Profile.CORE, 4, 3) {
 
 
     val SHADER_SOURCE_TEXTURE = "gl-430/fbo-texture-2d"

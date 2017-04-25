@@ -1,8 +1,9 @@
 package ogl_samples.tests.gl300
 
 /**
- * Created by elect on 08/04/17.
+ * Created by GBarbieri on 25.04.2017.
  */
+
 
 import gli.Texture2d
 import gli.gl
@@ -31,10 +32,10 @@ import uno.gln.*
 import java.nio.IntBuffer
 
 fun main(args: Array<String>) {
-    gl_300_fbo_multisample().run()
+    gl_300_test_alpha().run()
 }
 
-private class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Profile.COMPATIBILITY, 3, 0) {
+private class gl_300_test_alpha : Test("gl-300-test-alpha", Profile.COMPATIBILITY, 3, 0) {
 
     val SHADER_SOURCE = "gl-300/image-2d"
     val TEXTURE_DIFFUSE = "kueken7_rgba8_srgb.dds"
@@ -42,7 +43,7 @@ private class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Profile.CO
 
     // With DDS textures, v texture coordinate are reversed, from top to bottom
     val vertexCount = 6
-    val vertexSize = vertexCount * Vertex_v2fv2f.SIZE
+    val vertexSize = vertexCount * glf.pos2_tc2.SIZE
     val vertexData = floatBufferOf(
             -2.0f, -1.5f, /**/ 0.0f, 0.0f,
             +2.0f, -1.5f, /**/ 1.0f, 0.0f,
