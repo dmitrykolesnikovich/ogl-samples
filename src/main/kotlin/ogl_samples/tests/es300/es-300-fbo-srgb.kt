@@ -206,7 +206,7 @@ private class es_300_fbo_srgb : Test("es-300-fbo-srgb", Profile.ES, 3, 0) {
         glGenVertexArrays(vertexArrayName)
         glBindVertexArray(vertexArrayName[Program.RENDER])
         glBindBuffer(GL_ARRAY_BUFFER, bufferName[Buffer.VERTEX])
-        glVertexAttribPointer(glf.pos3[0])
+        glVertexAttribPointer(glf.pos3)
         glBindBuffer(GL_ARRAY_BUFFER)
 
         glEnableVertexAttribArray(semantic.attr.POSITION)
