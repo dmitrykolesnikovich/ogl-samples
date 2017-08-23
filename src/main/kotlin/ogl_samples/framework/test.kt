@@ -1,28 +1,23 @@
 package ogl_samples.framework
 
-import glm.glm
-import glm.mat.Mat4
-import glm.vec._2.Vec2
-import glm.vec._2.Vec2i
-import glm.vec._3.Vec3
-import glm.vec._4.Vec4
+import glm_.glm
+import glm_.mat4x4.Mat4
+import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWKeyCallbackI
 import org.lwjgl.glfw.GLFWMouseButtonCallbackI
 import org.lwjgl.opengl.ARBES2Compatibility.GL_IMPLEMENTATION_COLOR_READ_FORMAT
 import org.lwjgl.opengl.ARBES2Compatibility.GL_IMPLEMENTATION_COLOR_READ_TYPE
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32.GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS
 import org.lwjgl.system.Platform
-import uno.buffer.destroyBuffers
-import uno.buffer.floatBufferBig
 import uno.buffer.intBufferBig
-import uno.caps.Caps
 import uno.caps.Caps.Profile
+import uno.glfw.GlfwWindow
+import uno.glfw.glfw
 import java.nio.IntBuffer
 
 
@@ -51,9 +46,9 @@ abstract class Test(
     init {
         assert(windowSize.x > 0 && windowSize.y > 0)
 
-        glfwInit()
+        glfw.init()
 
-        with(windowHint) {
+        glfw.windowHint {
 
             resizable = false
             visible = true
@@ -62,8 +57,7 @@ abstract class Test(
             api = if (this@Test.profile == Profile.ES) "es" else "gl"
 
             if (version(this@Test.major, this@Test.minor) >= version(3, 2) || this@Test.profile == Profile.ES) {
-                major = this@Test.major
-                minor = this@Test.minor
+                context.version = "${this@Test.major}.${this@Test.minor}"
                 if (APPLE) {
                     profile = "core"
                     forwardComp = true
@@ -91,14 +85,15 @@ abstract class Test(
 
                 pos = Vec2i(64)
 
+
                 glfwSetMouseButtonCallback(handle, MouseListener())
-                glfwSetKeyCallback(handle, KeyListener())
+                glfwSetKeyCallback(handle, KeyListener_())
             }
 
         glfwMakeContextCurrent(window.handle)
 
         GL.createCapabilities()
-
+        uno.gln.checkError("program")
         glfwShowWindow(window.handle)
     }
 
@@ -140,12 +135,16 @@ abstract class Test(
 
     val caps = Caps(profile)
 
+    init {
+        glGetError()    // consume caps vec2 error, FIXME
+    }
+
     abstract fun begin(): Boolean
     abstract fun render(): Boolean
     abstract fun end(): Boolean
     private fun endInternal(): Boolean {
         val result = end()
-        window.dispose()
+        window.destroy()
         return result
     }
 
@@ -170,7 +169,7 @@ abstract class Test(
             result = result && checkError("render")
 
             glfwPollEvents()
-            if (window.shouldClose || (AUTOMATED_TESTS && frameCount == 0)) {
+            if (window.close || (AUTOMATED_TESTS && frameCount == 0)) {
                 if (success == Success.MATCH_TEMPLATE) {
                     if (!checkTemplate(window.handle, title))
                         result = EXIT_FAILURE
@@ -239,11 +238,12 @@ abstract class Test(
         } else true
     }
 
-    fun view(): Mat4 {
-        val viewTranslate = Mat4().translate(0f, 0f, -translationCurrent.y)
-        val viewRotateX = viewTranslate.rotate(rotationCurrent.y, 1f, 0f, 0f)
-        return viewRotateX.rotate(rotationCurrent.x, 0f, 1f, 0f)
-    }
+    val view: Mat4
+        get() {
+            val viewTranslate = Mat4().translate(0f, 0f, -translationCurrent.y)
+            val viewRotateX = viewTranslate.rotate(rotationCurrent.y, 1f, 0f, 0f)
+            return viewRotateX.rotate(rotationCurrent.x, 0f, 1f, 0f)
+        }
 
     enum class Heuristic(val i: Int) {
         EQUAL_BIT(1 shl 0),
@@ -253,18 +253,19 @@ abstract class Test(
         MIPMAPS_ABSOLUTE_DIFFERENCE_MAX_ONE_BIT(1 shl 4),
         MIPMAPS_ABSOLUTE_DIFFERENCE_MAX_FOUR_BIT(1 shl 5),
         MIPMAPS_ABSOLUTE_DIFFERENCE_MAX_CHANNEL_BIT(1 shl 6),
-        ALL(EQUAL_BIT or ABSOLUTE_DIFFERENCE_MAX_ONE_BIT or ABSOLUTE_DIFFERENCE_MAX_ONE_KERNEL_BIT or
-                ABSOLUTE_DIFFERENCE_MAX_ONE_LARGE_KERNEL_BIT or MIPMAPS_ABSOLUTE_DIFFERENCE_MAX_ONE_BIT or
-                MIPMAPS_ABSOLUTE_DIFFERENCE_MAX_FOUR_BIT);
+        ALL(EQUAL_BIT or ABSOLUTE_DIFFERENCE_MAX_ONE_BIT or ABSOLUTE_DIFFERENCE_MAX_ONE_KERNEL_BIT.i or
+                ABSOLUTE_DIFFERENCE_MAX_ONE_LARGE_KERNEL_BIT.i or MIPMAPS_ABSOLUTE_DIFFERENCE_MAX_ONE_BIT.i or
+                MIPMAPS_ABSOLUTE_DIFFERENCE_MAX_FOUR_BIT.i);
 
-        infix fun or(e: Heuristic) = i or e.i
+        infix fun or(b: Heuristic) = i or b.i
     }
 
-    enum class Vendor {DEFAULT, AMD, INTEL, NVIDIA, MAX }
 
-    enum class SyncMode {VSYNC, ASYNC, TEARING }
+    enum class Vendor { DEFAULT, AMD, INTEL, NVIDIA, MAX }
 
-    enum class Success {RUN_ONLY, GENERATE_ERROR, MATCH_TEMPLATE }
+    enum class SyncMode { VSYNC, ASYNC, TEARING }
+
+    enum class Success { RUN_ONLY, GENERATE_ERROR, MATCH_TEMPLATE }
 
     fun version(major: Int, minor: Int) = major * 100 + minor * 10
 
@@ -307,14 +308,14 @@ abstract class Test(
         }
     }
 
-    inner class KeyListener : GLFWKeyCallbackI {
+    inner class KeyListener_ : GLFWKeyCallbackI {
         override fun invoke(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {
             if (key < 0) return
 
             keyPressed[key] = action == Key.PRESS
 
             if (isKeyPressed(GLFW_KEY_ESCAPE))
-                this@Test.window.shouldClose = true
+                this@Test.window.close = true
         }
     }
 

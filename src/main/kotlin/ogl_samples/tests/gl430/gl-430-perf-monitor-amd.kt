@@ -1,6 +1,6 @@
 package ogl_samples.tests.gl430
 
-import glm.BYTES
+import glm_.BYTES
 import ogl_samples.framework.Test
 import uno.buffer.floatBufferOf
 import uno.buffer.shortBufferOf
@@ -23,7 +23,7 @@ private class gl_430_perf_monitor_amd : Test("gl-430-perf-monitor-amd", Profile.
     val TEXTURE = "kueken7_rgb_dxt1_unorm.dds"
 
     val vertexCount = 4
-    val vertexSize = vertexCount * glf.v2fv2f.SIZE
+    val vertexSize = vertexCount * glf.pos2_tc2.stride
     val vertexData = floatBufferOf(
             -1f, -1f, 0f, 1f,
             +1f, -1f, 1f, 1f,

@@ -3,6 +3,7 @@ package ogl_samples.framework
 import org.lwjgl.opengl.GL11.GL_TRUE
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER
+import uno.gln.checkError
 import java.io.File
 import kotlin.reflect.KClass
 
@@ -14,26 +15,26 @@ class Compiler {
 
     val pendingChecks = mutableListOf<Pair<String, Int>>()
 
-    fun create(context: KClass<*>, vararg shader: String):Int {
+    fun create(vararg shader: String): Int {
         val program = glCreateProgram()
-        shader.map{ create(context, it) }.forEach { glAttachShader(program, it) }
+        shader.map { create(it) }.forEach { glAttachShader(program, it) }
         return program
     }
 
-    fun create(context: KClass<*>, filename: String): Int {
+    fun create(filename: String): Int {
 
-        val path = "/data/$filename"
-        val url = context::class.java.getResource(path)
+        val path = "data/$filename"
+        val url = ClassLoader.getSystemResource(path)
         val lines = File(url.toURI()).readLines()
         var source = ""
         lines.forEach {
             if (it.startsWith("#include "))
-                source += parseInclude(context, path.substringBeforeLast('/'), it.substring("#include ".length).trim())
+                source += parseInclude(path.substringBeforeLast('/'), it.substring("#include ".length).trim())
             else
                 source += it
             source += '\n'
         }
-        val name = glCreateShader(getType(filename.toString().substringAfterLast('.')))
+        val name = glCreateShader(filename.substringAfterLast('.').type)
 //        println(source)
         glShaderSource(name, source)
 
@@ -44,10 +45,10 @@ class Compiler {
         return name
     }
 
-    fun parseInclude(context: KClass<*>, root: String, shader: String): String {
+    fun parseInclude(root: String, shader: String): String {
         if (shader.startsWith('"') && shader.endsWith('"'))
             shader.substring(1, shader.length - 1)
-        val url = context::class.java.getResource("$root/$shader")
+        val url = ClassLoader.getSystemResource("$root/$shader")
         return File(url.toURI()).readText() + "\n"
     }
 
@@ -83,10 +84,11 @@ class Compiler {
         return success
     }
 
-    fun getType(ext: String) = when (ext) {
-        "vert" -> GL_VERTEX_SHADER
-        "geom" -> GL_GEOMETRY_SHADER
-        "frag" -> GL_FRAGMENT_SHADER
-        else -> throw Error()
-    }
+    private val String.type
+        get() = when (this) {
+            "vert" -> GL_VERTEX_SHADER
+            "geom" -> GL_GEOMETRY_SHADER
+            "frag" -> GL_FRAGMENT_SHADER
+            else -> throw Error()
+        }
 }

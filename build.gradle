@@ -5,7 +5,7 @@ apply plugin: 'kotlin'
 
 buildscript {
 
-    ext.kotlinVersion = '1.1.2-eap-77'
+    ext.kotlinVersion = '1.2-M2'
 
     repositories {
         mavenCentral()
@@ -22,9 +22,7 @@ dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
-    compile 'com.github.kotlin-graphics:gli:c04616d6f4b7991ff5dae331ebceebc1c7deb187'
-    compile 'com.github.kotlin-graphics:glm:d631edc89d9070dab1dc2b303334bf1102005691'
-    compile 'com.github.kotlin-graphics:uno-sdk:fc4f50ebd9275f17138c8433e3197b72c8a0e4a5'
+    compile 'com.github.kotlin-graphics:uno-sdk:d8d1d905a156d9232427693f431e7b9e27c79f06'
 
     switch ( OperatingSystem.current() ) {
         case OperatingSystem.WINDOWS:

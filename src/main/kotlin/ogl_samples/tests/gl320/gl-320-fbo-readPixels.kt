@@ -4,10 +4,10 @@
 //import com.jogamp.opengl.GL2ES3.GL_UNIFORM_BUFFER
 //import com.jogamp.opengl.GL3
 //import com.jogamp.opengl.GLAutoDrawable
-//import glm.BYTES
-//import glm.L
-//import glm.glm
-//import glm.mat.Mat4
+//import glm_.BYTES
+//import glm_.L
+//import glm_.glm
+//import glm_.mat.Mat4
 //import ogl_samples.framework.Test
 //import ogl_samples.framework.semantic
 //import uno.buffer.byteBufferBig

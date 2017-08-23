@@ -7,13 +7,12 @@ package ogl_samples.tests.gl300
 
 import gli.Texture2d
 import gli.gl
-import glm.glm
-import glm.mat.Mat4
-import glm.vec._2.Vec2i
-import glm.vec._4.Vec4
+import glm_.glm
+import glm_.mat4x4.Mat4
+import glm_.vec2.Vec2i
+import glm_.vec4.Vec4
 import ogl_samples.framework.Compiler
 import ogl_samples.framework.Test
-import ogl_samples.framework.semantic
 import org.lwjgl.opengl.ARBFramebufferObject.*
 import org.lwjgl.opengl.ARBVertexArrayObject.glGenVertexArrays
 import org.lwjgl.opengl.GL11.*
@@ -26,8 +25,8 @@ import org.lwjgl.opengl.GL30.glDeleteVertexArrays
 import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
 import uno.caps.Caps.Profile
-import uno.glf.Vertex_v2fv2f
 import uno.glf.glf
+import uno.glf.semantic
 import uno.gln.*
 import java.nio.IntBuffer
 
@@ -43,7 +42,7 @@ private class gl_300_test_alpha : Test("gl-300-test-alpha", Profile.COMPATIBILIT
 
     // With DDS textures, v texture coordinate are reversed, from top to bottom
     val vertexCount = 6
-    val vertexSize = vertexCount * glf.pos2_tc2.SIZE
+    val vertexSize = vertexCount * glf.pos2_tc2.stride
     val vertexData = floatBufferOf(
             -2.0f, -1.5f, /**/ 0.0f, 0.0f,
             +2.0f, -1.5f, /**/ 1.0f, 0.0f,
@@ -95,15 +94,15 @@ private class gl_300_test_alpha : Test("gl-300-test-alpha", Profile.COMPATIBILIT
 
         if (validated) {
 
-            val vertShaderName = compiler.create(this::class, SHADER_SOURCE + ".vert")
-            val fragShaderName = compiler.create(this::class, SHADER_SOURCE + ".frag")
+            val vertShaderName = compiler.create("$SHADER_SOURCE.vert")
+            val fragShaderName = compiler.create("$SHADER_SOURCE.frag")
 
             programName = glCreateProgram()
             glAttachShader(programName, vertShaderName)
             glAttachShader(programName, fragShaderName)
 
             glBindAttribLocation(programName, semantic.attr.POSITION, "Position")
-            glBindAttribLocation(programName, semantic.attr.TEXCOORD, "Texcoord")
+            glBindAttribLocation(programName, semantic.attr.TEX_COORD, "Texcoord")
             glLinkProgram(programName)
 
             validated = validated && compiler.check()
@@ -190,7 +189,7 @@ private class gl_300_test_alpha : Test("gl-300-test-alpha", Profile.COMPATIBILIT
         glBindBuffer(GL_ARRAY_BUFFER)
 
         glEnableVertexAttribArray(semantic.attr.POSITION)
-        glEnableVertexAttribArray(semantic.attr.TEXCOORD)
+        glEnableVertexAttribArray(semantic.attr.TEX_COORD)
         glBindVertexArray()
 
         return checkError("initVertexArray")
@@ -233,8 +232,8 @@ private class gl_300_test_alpha : Test("gl-300-test-alpha", Profile.COMPATIBILIT
 
         val perspective = glm.perspective(glm.PIf * 0.25f, FRAMEBUFFER_SIZE, 0.1f, 100.0f)
         val model = Mat4()
-        val mvp = perspective * view() * model
-        glUniformMatrix4f(uniformMVP, mvp)
+        val mvp = perspective * view * model
+        glUniform(uniformMVP, mvp)
 
         glViewport(FRAMEBUFFER_SIZE)
 
@@ -251,8 +250,8 @@ private class gl_300_test_alpha : Test("gl-300-test-alpha", Profile.COMPATIBILIT
 
         val perspective = glm.perspective(glm.PIf * 0.25f, windowSize, 0.1f, 100.0f)
         val model = Mat4()
-        val mvp = perspective * view() * model
-        glUniformMatrix4f(uniformMVP, mvp)
+        val mvp = perspective * view * model
+        glUniform(uniformMVP, mvp)
 
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, texture2DName)

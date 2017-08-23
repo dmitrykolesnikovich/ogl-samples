@@ -6,13 +6,12 @@ package ogl_samples.tests.gl300
 
 import gli.Texture2d
 import gli.gl
-import glm.glm
-import glm.mat.Mat4
-import glm.vec._2.Vec2i
-import glm.vec._4.Vec4
+import glm_.glm
+import glm_.mat4x4.Mat4
+import glm_.vec2.Vec2i
+import glm_.vec4.Vec4
 import ogl_samples.framework.Compiler
 import ogl_samples.framework.Test
-import ogl_samples.framework.semantic
 import org.lwjgl.opengl.ARBFramebufferObject.*
 import org.lwjgl.opengl.ARBVertexArrayObject.glGenVertexArrays
 import org.lwjgl.opengl.GL11.*
@@ -25,8 +24,8 @@ import org.lwjgl.opengl.GL30.glDeleteVertexArrays
 import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
 import uno.caps.Caps.Profile
-import uno.glf.Vertex_v2fv2f
 import uno.glf.glf
+import uno.glf.semantic
 import uno.gln.*
 import java.nio.IntBuffer
 
@@ -42,7 +41,7 @@ private class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Profile.CO
 
     // With DDS textures, v texture coordinate are reversed, from top to bottom
     val vertexCount = 6
-    val vertexSize = vertexCount * Vertex_v2fv2f.SIZE
+    val vertexSize = vertexCount * glf.pos2_tc2.stride
     val vertexData = floatBufferOf(
             -2.0f, -1.5f, /**/ 0.0f, 0.0f,
             +2.0f, -1.5f, /**/ 1.0f, 0.0f,
@@ -66,7 +65,6 @@ private class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Profile.CO
     val framebufferRenderName = intBufferBig(1)
     val framebufferResolveName = intBufferBig(1)
     var uniformMVP = -1
-    var uniformDiffuse = -1
 
     override fun begin(): Boolean {
 
@@ -94,35 +92,36 @@ private class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Profile.CO
 
         if (validated) {
 
-            val vertShaderName = compiler.create(this::class, SHADER_SOURCE + ".vert")
-            val fragShaderName = compiler.create(this::class, SHADER_SOURCE + ".frag")
+            val vertShaderName = compiler.create("$SHADER_SOURCE.vert")
+            val fragShaderName = compiler.create("$SHADER_SOURCE.frag")
 
             programName = glCreateProgram()
             glAttachShader(programName, vertShaderName)
             glAttachShader(programName, fragShaderName)
 
             glBindAttribLocation(programName, semantic.attr.POSITION, "Position")
-            glBindAttribLocation(programName, semantic.attr.TEXCOORD, "Texcoord")
+            glBindAttribLocation(programName, semantic.attr.TEX_COORD, "Texcoord")
             glLinkProgram(programName)
 
             validated = validated && compiler.check()
             validated = validated && compiler checkProgram programName
         }
 
-        if (validated) {
+        if (validated)
             uniformMVP = glGetUniformLocation(programName, "MVP")
-            uniformDiffuse = glGetUniformLocation(programName, "Diffuse")
-        }
+
+        usingProgram(programName) { "Diffuse".unit = semantic.sampler.DIFFUSE }
 
         return validated && checkError("initProgram")
     }
 
     fun initBuffer(): Boolean {
 
-        glGenBuffers(bufferName)
-        glBindBuffer(GL_ARRAY_BUFFER, bufferName)
-        glBufferData(GL_ARRAY_BUFFER, vertexData, GL_STATIC_DRAW)
-        glBindBuffer(GL_ARRAY_BUFFER)
+        initBuffers(bufferName) {
+            withArray {
+                data(vertexData, GL_STATIC_DRAW)
+            }
+        }
 
         return checkError("initBuffer")
     }
@@ -132,17 +131,16 @@ private class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Profile.CO
         val texture = Texture2d(gli.loadDDS(javaClass.getResource("/$data/$TEXTURE_DIFFUSE").toURI()))
         gl.profile = gl.Profile.GL32
 
-        glGenTextures(textureName)
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, textureName[Texture.DIFFUSE])
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, texture.levels() - 1)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        initTexture2d(textureName) {
 
-        val format = gl.translate(texture.format, texture.swizzles)
-        for (level in 0 until texture.levels())
-            glTexImage2D(level, format, texture)
+            levels = 0 until texture.levels()
+            minFilter = linear_mmLinear
+            magFilter = linear
+
+            val format = gl.translate(texture.format, texture.swizzles)
+            for (level in 0 until texture.levels())
+                glTexImage2D(level, format, texture)
+        }
 
         texture.dispose()
 
@@ -189,7 +187,7 @@ private class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Profile.CO
         glBindBuffer(GL_ARRAY_BUFFER)
 
         glEnableVertexAttribArray(semantic.attr.POSITION)
-        glEnableVertexAttribArray(semantic.attr.TEXCOORD)
+        glEnableVertexAttribArray(semantic.attr.TEX_COORD)
         glBindVertexArray()
 
         return checkError("initVertexArray")
@@ -202,7 +200,6 @@ private class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Profile.CO
         glClearBuffer(GL_COLOR, Vec4(1.0f, 0.5f, 0.0f, 1.0f))
 
         glUseProgram(programName)
-        glUniform1i(uniformDiffuse, semantic.sampler.DIFFUSE)
 
         // Pass 1
         // Render the scene in a multisampled framebuffer
@@ -232,8 +229,8 @@ private class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Profile.CO
 
         val perspective = glm.perspective(glm.PIf * 0.25f, FRAMEBUFFER_SIZE, 0.1f, 100.0f)
         val model = Mat4()
-        val mvp = perspective * view() * model
-        glUniformMatrix4f(uniformMVP, mvp)
+        val mvp = perspective * view * model
+        glUniform(uniformMVP, mvp)
 
         glViewport(FRAMEBUFFER_SIZE)
 
@@ -250,8 +247,8 @@ private class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Profile.CO
 
         val perspective = glm.perspective(glm.PIf * 0.25f, windowSize, 0.1f, 100.0f)
         val model = Mat4()
-        val mvp = perspective * view() * model
-        glUniformMatrix4f(uniformMVP, mvp)
+        val mvp = perspective * view * model
+        glUniform(uniformMVP, mvp)
 
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, texture2DName)
