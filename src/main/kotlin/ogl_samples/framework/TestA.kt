@@ -47,6 +47,15 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
     open fun initProgram() = true
     open fun initBuffer() = true
 
+    open fun initBuffers(vertices : FloatArray, elements: ShortArray): Boolean {
+
+        initArrayBuffer(*vertices)
+
+        initElementeBuffer(*elements)
+
+        return checkError("initBuffers")
+    }
+
     open fun initArrayBuffer(vararg args: Float) {
 
         positionData = floatBufferOf(*args)
@@ -57,8 +66,6 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
         glBindBuffer(GL_ARRAY_BUFFER, bufferName[Buffer.VERTEX])
         glBufferData(GL_ARRAY_BUFFER, positionData, GL_STATIC_DRAW)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
-
-        checkError("initArrayBuffer")
     }
 
     open fun initElementeBuffer(vararg args: Short) {
@@ -71,8 +78,6 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferName[Buffer.ELEMENT])
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, elementData, GL_STATIC_DRAW)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
-
-        checkError("initArrayBuffer")
     }
 
     override abstract fun render():Boolean

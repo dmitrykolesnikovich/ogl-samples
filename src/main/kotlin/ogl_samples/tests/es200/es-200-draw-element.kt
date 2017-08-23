@@ -72,20 +72,14 @@ private class es_200_draw_elements : TestA("es-200-draw-elements", Profile.ES, 2
         return validated && checkError("initProgram")
     }
 
-    override fun initBuffer(): Boolean {
-
-        initArrayBuffer(
-                -1f, -1f,
-                +1f, -1f,
-                +1f, +1f,
-                -1f, +1f)
-
-        initElementeBuffer(
-                0, 1, 2,
-                0, 2, 3)
-
-        return checkError("initBuffer")
-    }
+    override fun initBuffer() = initBuffers(floatArrayOf(
+            -1f, -1f,
+            +1f, -1f,
+            +1f, +1f,
+            -1f, +1f),
+            shortArrayOf(
+                    0, 1, 2,
+                    0, 2, 3))
 
     override fun render(): Boolean {
 
