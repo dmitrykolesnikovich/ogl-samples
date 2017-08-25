@@ -12,7 +12,7 @@ import uno.glf.glf
  */
 
 fun main(args: Array<String>) {
-    gl_430_perf_monitor_amd().run()
+    gl_430_perf_monitor_amd().loop()
 }
 
 private class gl_430_perf_monitor_amd : Test("gl-430-perf-monitor-amd", Profile.CORE, 4, 3) {

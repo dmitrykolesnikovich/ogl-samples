@@ -15,8 +15,6 @@ import ogl_samples.framework.Test
 import org.lwjgl.opengl.ARBFramebufferObject.*
 import org.lwjgl.opengl.ARBVertexArrayObject.glGenVertexArrays
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL12.GL_TEXTURE_BASE_LEVEL
-import org.lwjgl.opengl.GL12.GL_TEXTURE_MAX_LEVEL
 import org.lwjgl.opengl.GL13.*
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
@@ -30,7 +28,7 @@ import uno.gln.*
 import java.nio.IntBuffer
 
 fun main(args: Array<String>) {
-    gl_300_fbo_multisample().run()
+    gl_300_fbo_multisample().loop()
 }
 
 private class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Profile.COMPATIBILITY, 3, 0) {
@@ -128,7 +126,7 @@ private class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Profile.CO
 
     fun initTexture(): Boolean {
 
-        val texture = Texture2d(gli.loadDDS(javaClass.getResource("/$data/$TEXTURE_DIFFUSE").toURI()))
+        val texture = Texture2d(gli.loadDDS(javaClass.getResource("/$dataDirectory/$TEXTURE_DIFFUSE").toURI()))
         gl.profile = gl.Profile.GL32
 
         initTexture2d(textureName) {

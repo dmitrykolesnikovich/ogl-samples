@@ -18,6 +18,7 @@ import uno.buffer.intBufferBig
 import uno.caps.Caps.Profile
 import uno.glfw.GlfwWindow
 import uno.glfw.glfw
+import uno.gln.checkError
 import java.nio.IntBuffer
 
 
@@ -41,7 +42,7 @@ abstract class Test(
         val success: Success = Success.MATCH_TEMPLATE,
         val heuristic: Heuristic = Heuristic.ALL) {
 
-    val data = "data"
+    val dataDirectory = "data/"
 
     init {
         assert(windowSize.x > 0 && windowSize.y > 0)
@@ -148,7 +149,7 @@ abstract class Test(
         return result
     }
 
-    fun run(): Boolean {
+    fun loop(): Boolean {
 
         if (window.handle == 0L)
             return EXIT_FAILURE
@@ -192,6 +193,8 @@ abstract class Test(
             if (result == EXIT_SUCCESS || !error) EXIT_SUCCESS else EXIT_FAILURE
     }
 
+//    fun che(location: String) = checkError(location)
+
     fun swap() = glfwSwapBuffers(window.handle)
 
     fun checkTemplate(pWindow: Long, title: String): Boolean {
@@ -200,24 +203,6 @@ abstract class Test(
         val coloryFormat = if (profile == Profile.ES) glGetInteger(GL_IMPLEMENTATION_COLOR_READ_FORMAT) else GL_RGBA
 
         return true // TODO
-    }
-
-    fun checkError(title: String): Boolean {
-
-        val error = glGetError()
-        if (error != GL_NO_ERROR) {
-            val errorString = when (error) {
-                GL_INVALID_ENUM -> "GL_INVALID_ENUM"
-                GL_INVALID_VALUE -> "GL_INVALID_VALUE"
-                GL_INVALID_OPERATION -> "GL_INVALID_OPERATION"
-                GL_INVALID_FRAMEBUFFER_OPERATION -> "GL_INVALID_FRAMEBUFFER_OPERATION"
-                GL_OUT_OF_MEMORY -> "GL_OUT_OF_MEMORY"
-                else -> "UNKNOWN"
-            }
-            println("OpenGL Error($errorString): $title")
-            assert(false)
-        }
-        return error == GL_NO_ERROR
     }
 
     fun checkFramebuffer(framebufferName: IntBuffer) = checkFramebuffer(framebufferName[0])
@@ -232,7 +217,7 @@ abstract class Test(
                 GL_FRAMEBUFFER_UNSUPPORTED -> "GL_FRAMEBUFFER_UNSUPPORTED"
                 GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE -> "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE"
                 GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS -> "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS"
-                else -> "GL_FRAMEBUFFER_UNDEFINED"
+                else -> "GL_FRAMEBUFFER_UNDEFINED" // TODO there is enum
             }})")
             false
         } else true

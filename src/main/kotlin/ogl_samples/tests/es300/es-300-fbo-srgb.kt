@@ -5,8 +5,8 @@ package ogl_samples.tests.es300
  */
 
 import glm_.glm
-import glm_.vec3.Vec3
 import glm_.mat4x4.Mat4
+import glm_.vec3.Vec3
 import ogl_samples.framework.Test
 import org.lwjgl.opengl.ARBFramebufferObject.*
 import org.lwjgl.opengl.ARBMapBufferRange.GL_MAP_INVALIDATE_BUFFER_BIT
@@ -22,9 +22,9 @@ import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.glUseProgram
 import org.lwjgl.opengl.GL21.GL_SRGB
 import org.lwjgl.opengl.GL21.GL_SRGB8_ALPHA8
-import uno.buffer.byteBufferBig
+import uno.buffer.bufferBig
 import uno.buffer.destroy
-import uno.buffer.destroyBuffers
+import uno.buffer.destroyBuf
 import uno.buffer.intBufferBig
 import uno.caps.Caps.Profile
 import uno.glf.generateIcosahedron
@@ -37,7 +37,7 @@ import uno.gln.*
  */
 
 fun main(args: Array<String>) {
-    es_300_fbo_srgb().run()
+    es_300_fbo_srgb().loop()
 }
 
 private class es_300_fbo_srgb : Test("es-300-fbo-srgb", Profile.ES, 3, 0) {
@@ -153,7 +153,7 @@ private class es_300_fbo_srgb : Test("es-300-fbo-srgb", Profile.ES, 3, 0) {
 
         val vertices = generateIcosahedron(4)
         vertexCount = vertices.size * Vec3.length
-        val vertexData = byteBufferBig(vertexCount * Vec3.size)
+        val vertexData = bufferBig(vertexCount * Vec3.size)
         vertices.forEachIndexed { i, it -> it.to(vertexData, i * Vec3.size) }
 
         initBuffers(bufferName) {
@@ -298,7 +298,7 @@ private class es_300_fbo_srgb : Test("es-300-fbo-srgb", Profile.ES, 3, 0) {
         glDeleteTextures(textureName)
         glDeleteVertexArrays(vertexArrayName)
 
-        destroyBuffers(framebufferName, bufferName, textureName, vertexArrayName)
+        destroyBuf(framebufferName, bufferName, textureName, vertexArrayName)
 
         return true
     }

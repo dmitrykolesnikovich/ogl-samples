@@ -31,7 +31,7 @@ import uno.gln.*
 import java.nio.IntBuffer
 
 fun main(args: Array<String>) {
-    gl_300_test_alpha().run()
+    gl_300_test_alpha().loop()
 }
 
 private class gl_300_test_alpha : Test("gl-300-test-alpha", Profile.COMPATIBILITY, 3, 0) {
@@ -129,7 +129,7 @@ private class gl_300_test_alpha : Test("gl-300-test-alpha", Profile.COMPATIBILIT
 
     fun initTexture(): Boolean {
 
-        val texture = Texture2d(gli.loadDDS(javaClass.getResource("/$data/$TEXTURE_DIFFUSE").toURI()))
+        val texture = Texture2d(gli.loadDDS(javaClass.getResource("/$dataDirectory/$TEXTURE_DIFFUSE").toURI()))
         gl.profile = gl.Profile.GL32
 
         glGenTextures(textureName)

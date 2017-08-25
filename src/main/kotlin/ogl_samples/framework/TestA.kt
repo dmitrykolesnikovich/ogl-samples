@@ -1,12 +1,12 @@
 package ogl_samples.framework
 
 import glm_.BYTES
-import glm_.size
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.glDeleteProgram
 import org.lwjgl.opengl.GL20.glIsProgram
 import uno.buffer.*
 import uno.caps.Caps
+import uno.gln.checkError
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
@@ -30,6 +30,7 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
     var programName = 0
     var uniformMVP = 0
     var uniformDiffuse = 0
+    val vertexArrayName = intBufferBig(1)
 
     override fun begin(): Boolean {
 
@@ -95,7 +96,7 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
         if (glIsProgram(programName))
             glDeleteProgram(programName)
 
-        destroyBuffers(bufferName)
+        destroyBuf(bufferName)
 
         return true
     }

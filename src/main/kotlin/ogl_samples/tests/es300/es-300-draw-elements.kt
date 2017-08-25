@@ -7,6 +7,7 @@
 //import glm_.vec4.Vec4
 //import ogl_samples.framework.Compiler
 //import ogl_samples.framework.Test
+//import ogl_samples.framework.TestA
 //import org.lwjgl.opengl.ARBVertexArrayObject.glDeleteVertexArrays
 //import org.lwjgl.opengl.GL11.*
 //import org.lwjgl.opengl.GL15.GL_STATIC_DRAW
@@ -26,61 +27,27 @@
 // */
 //
 //fun main(args: Array<String>) {
-//    es_300_draw_elements().run()
+//    es_300_draw_elements().loop()
 //}
 //
-//private class es_300_draw_elements : Test("es-300-draw-elements", Profile.ES, 3, 0) {
+//private class es_300_draw_elements : TestA("es-300-draw-elements", Profile.ES, 3, 0) {
 //
 //    val SHADER_SOURCE = "es-300/flat-color"
 //    val FRAGMENT_SHADER_SOURCE_FAIL = "es-300/flat-color-fail.frag"
 //
-//    val elementCount = 6
-//    val elementSize = elementCount * Int.BYTES
-//    val elementData = intBufferOf(
-//            0, 1, 2,
-//            0, 2, 3)
-//
-//    val vertexCount = 4
-//    val positionSize = vertexCount * Vec2.size
-//    val positionData = floatBufferOf(
-//            -1.0f, -1.0f,
-//            +1.0f, -1.0f,
-//            +1.0f, +1.0f,
-//            -1.0f, +1.0f)
-//
-//    object buffer {
-//        val VERTEX = 0
-//        val ELEMENT = 1
-//        val MAX = 2
-//    }
-//
-//    val bufferName = intBufferBig(buffer.MAX)
-//    val vertexArrayName = intBufferBig(1)
-//    var programName = 0
-//    var uniformMVP = 0
-//
 //    val projection = Mat4()
 //
 //    override fun begin(): Boolean {
-//
-//        var validated = true
 //
 //        println(caps.version.VENDOR)
 //        println(caps.version.RENDERER)
 //        println(caps.version.VERSION)
 //        caps.extensions.list.forEach(::println)
 //
-//        if (validated)
-//            validated = initProgram()
-//        if (validated)
-//            validated = initBuffer()
-//        if (validated)
-//            validated = initVertexArray()
-//
-//        return validated
+//        return super.begin()
 //    }
 //
-//    fun initProgram(): Boolean {
+//    override fun initProgram(): Boolean {
 //
 //        var validated = true
 //
@@ -120,15 +87,15 @@
 //        return validated && checkError("initProgram")
 //    }
 //
-//    fun initBuffer(): Boolean {
-//
-//        initBuffers(bufferName) {
-//            withArrayAt(buffer.VERTEX) {data(positionData, GL_STATIC_DRAW)}
-//            withElementAt(buffer.ELEMENT) {data(elementData, GL_STATIC_DRAW)}
-//        }
-//
-//        return checkError("initBuffer")
-//    }
+//    override fun initBuffer() = initBuffers(
+//            floatArrayOf(
+//                    -1f, -1f,
+//                    +1f, -1f,
+//                    +1f, +1f,
+//                    -1f, +1f),
+//            shortArrayOf(
+//                    0, 1, 2,
+//                    0, 2, 3))
 //
 //    fun initVertexArray(): Boolean {
 //
@@ -146,7 +113,7 @@
 //        glDrawBuffers(buffers)
 //
 //        // Compute the MVP (Model View Projection matrix)
-//        val projection = glm.perspective(glm.PIf * 0.25f, 4f / 3f, 0.1f, 100.0f)
+//        val projection = glm.perspective(glm.PIf * 0.25f, 4f / 3f, 0.1f, 100f)
 //        val model = Mat4()
 //        val mvp = projection * view * model
 //
@@ -154,7 +121,7 @@
 //        glViewport(windowSize)
 //
 //        // Clear color buffer with black
-//        glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
+//        glClearColor()
 //        glClearDepthf()
 //        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 //
@@ -167,17 +134,6 @@
 //        glBindVertexArray(vertexArrayName)
 //
 //        glDrawElements(elementCount)
-//
-//        return true
-//    }
-//
-//    override fun end(): Boolean {
-//
-//        glDeleteBuffers(bufferName)
-//        glDeleteVertexArrays(vertexArrayName)
-//        glDeleteProgram(programName)
-//
-//        destroyBuffers(bufferName, vertexArrayName)
 //
 //        return true
 //    }

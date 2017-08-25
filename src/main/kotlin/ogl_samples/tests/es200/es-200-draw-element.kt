@@ -6,9 +6,6 @@ import glm_.vec4.Vec4
 import ogl_samples.framework.Compiler
 import ogl_samples.framework.TestA
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL15.glDeleteBuffers
-import org.lwjgl.opengl.GL20.glDeleteProgram
-import uno.buffer.destroyBuffers
 import uno.caps.Caps.Profile
 import uno.glf.glf
 import uno.glf.semantic
@@ -19,7 +16,7 @@ import uno.gln.*
  */
 
 fun main(args: Array<String>) {
-    es_200_draw_elements().run()
+    es_200_draw_elements().loop()
 }
 
 private class es_200_draw_elements : TestA("es-200-draw-elements", Profile.ES, 2, 0) {
@@ -72,11 +69,12 @@ private class es_200_draw_elements : TestA("es-200-draw-elements", Profile.ES, 2
         return validated && checkError("initProgram")
     }
 
-    override fun initBuffer() = initBuffers(floatArrayOf(
-            -1f, -1f,
-            +1f, -1f,
-            +1f, +1f,
-            -1f, +1f),
+    override fun initBuffer() = initBuffers(
+            floatArrayOf(
+                    -1f, -1f,
+                    +1f, -1f,
+                    +1f, +1f,
+                    -1f, +1f),
             shortArrayOf(
                     0, 1, 2,
                     0, 2, 3))
