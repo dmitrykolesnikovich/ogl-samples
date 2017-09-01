@@ -193,8 +193,6 @@ abstract class Test(
             if (result == EXIT_SUCCESS || !error) EXIT_SUCCESS else EXIT_FAILURE
     }
 
-//    fun che(location: String) = checkError(location)
-
     fun swap() = glfwSwapBuffers(window.handle)
 
     fun checkTemplate(pWindow: Long, title: String): Boolean {

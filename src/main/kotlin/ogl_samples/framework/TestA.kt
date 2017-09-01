@@ -1,12 +1,18 @@
 package ogl_samples.framework
 
+import gli.wasInit
 import glm_.BYTES
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.glDeleteProgram
 import org.lwjgl.opengl.GL20.glIsProgram
+import org.lwjgl.opengl.GL30.glDeleteVertexArrays
+import org.lwjgl.opengl.GL30.glIsVertexArray
 import uno.buffer.*
 import uno.caps.Caps
+import uno.glf.VertexLayout
+import uno.glf.glf
 import uno.gln.checkError
+import uno.gln.initVertexArray
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
@@ -42,19 +48,23 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
         if (validated)
             validated = initBuffer()
 
+        if(validated)
+            validated = initVertexArray()
+
         return validated
     }
 
     open fun initProgram() = true
+
     open fun initBuffer() = true
 
-    open fun initBuffers(vertices : FloatArray, elements: ShortArray): Boolean {
+    open fun initBuffers(vertices: FloatArray, elements: ShortArray): Boolean {
 
         initArrayBuffer(*vertices)
 
         initElementeBuffer(*elements)
 
-        return checkError("initBuffers")
+        return checkError("TestA.initBuffers")
     }
 
     open fun initArrayBuffer(vararg args: Float) {
@@ -81,23 +91,42 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
     }
 
-    override abstract fun render():Boolean
+    open fun initVertexArray() = true
+
+    open fun initVertexArray(vertexLayout: VertexLayout): Boolean {
+
+        when(vertexLayout) {
+
+            glf.pos2 -> {
+
+                initVertexArray(vertexArrayName) {
+                    array(bufferName[Buffer.VERTEX], glf.pos2)
+                    element(bufferName[Buffer.ELEMENT])
+                }
+            }
+        }
+        return checkError("TestA.initVertexArray")
+    }
+
+    override abstract fun render(): Boolean
 
     override fun end(): Boolean {
+
+        if (glIsProgram(programName)) glDeleteProgram(programName)
 
         for (i in 0 until Buffer.MAX)
             if (glIsBuffer(bufferName[i])) {
                 glDeleteBuffers(bufferName[i])
                 when (i) {
-                    Buffer.VERTEX -> positionData.destroy()
-                    Buffer.ELEMENT -> elementData.destroy()
+                    Buffer.VERTEX -> if (wasInit { positionData }) positionData.destroy()
+                    Buffer.ELEMENT -> if (wasInit { elementData }) elementData.destroy()
                 }
             }
-        if (glIsProgram(programName))
-            glDeleteProgram(programName)
 
-        destroyBuf(bufferName)
+        if(glIsVertexArray(vertexArrayName[0])) glDeleteVertexArrays(vertexArrayName)
 
-        return true
+        destroyBuf(bufferName, vertexArrayName)
+
+        return checkError("TestA.initVertexArray")
     }
 }
