@@ -2,8 +2,11 @@ package ogl_samples.tests.es200
 
 import com.jogamp.opengl.GL
 import glm_.BYTES
+import glm_.detail.Random.float
 import glm_.glm
 import glm_.mat4x4.Mat4
+import glm_.set
+import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4
@@ -11,16 +14,22 @@ import glm_.vec4.Vec4b
 import ogl_samples.framework.Test
 import ogl_samples.framework.Compiler
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
+import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL14.GL_DEPTH_COMPONENT16
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL32.glFramebufferTexture
+import org.lwjgl.system.MemoryUtil
 import uno.buffer.bufferBig
 import uno.buffer.destroy
 import uno.buffer.intBufferBig
 import uno.buffer.shortBufferOf
 import uno.caps.Caps
+import uno.gl.fBuf
+import uno.gl.v4Buf
 import uno.glf.glf
 import uno.glf.semantic
 import uno.gln.*
@@ -29,7 +38,7 @@ fun main(args: Array<String>) {
     es_200_fbo_shadow().loop()
 }
 
-private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 2, 0) {
+private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 2, 0, Vec2(0f, -glm.PIf * 0.3f)) {
 
     val VERT_SHADER_SOURCE_DEPTH = "es-200/fbo-shadow-depth.vert"
     val FRAG_SHADER_SOURCE_DEPTH = "es-200/fbo-shadow-depth.frag"
@@ -68,7 +77,7 @@ private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 
     object Buffer {
         val VERTEX = 0
         val ELEMENT = 1
-        val MAX = 3
+        val MAX = 2
     }
 
     object Attachment {
@@ -161,17 +170,11 @@ private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 
             shaderName[Shader.FRAG_DEPTH] = compiler.create(FRAG_SHADER_SOURCE_DEPTH)
             validated = validated && compiler.check()
 
-//            programName[Framebuffer.DEPTH] = glCreateProgram {
-//                attach(shaderName[Shader.VERT_DEPTH], shaderName[Shader.FRAG_DEPTH])
-//                "Position".location = semantic.attr.POSITION
-//                link()
-//            }
-
-            programName[Framebuffer.DEPTH] = glCreateProgram()
-            glAttachShader(programName[Framebuffer.DEPTH], shaderName[Shader.VERT_DEPTH])
-            glAttachShader(programName[Framebuffer.DEPTH], shaderName[Shader.FRAG_DEPTH])
-            glBindAttribLocation(programName[Framebuffer.DEPTH], semantic.attr.POSITION, "Position")
-            glLinkProgram(programName[Framebuffer.DEPTH])
+            programName[Framebuffer.DEPTH] = glCreateProgram {
+                attach(shaderName[Shader.VERT_DEPTH], shaderName[Shader.FRAG_DEPTH])
+                "Position".location = semantic.attr.POSITION
+                link()
+            }
 
             validated = validated && compiler.checkProgram(programName[Framebuffer.DEPTH])
         }
@@ -199,6 +202,7 @@ private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 
                 "Color".location = semantic.attr.COLOR
                 link()
             }
+
             validated = validated && compiler.checkProgram(programName[Framebuffer.RENDER])
         }
 
@@ -215,7 +219,7 @@ private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 
                 }
             }
 
-        return validated && checkError("initProgram")
+        return validated
     }
 
     fun initBuffer(): Boolean {
@@ -224,7 +228,7 @@ private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 
             withElementAt(Buffer.ELEMENT) {
                 data(elementData, GL_STATIC_DRAW)
             }
-            withArrayAt(Buffer.ELEMENT) {
+            withArrayAt(Buffer.VERTEX) {
 
                 val vertexData = bufferBig(vertexSize)
                 for (i in 0 until vertexCount) {
@@ -236,8 +240,7 @@ private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 
                 vertexData.destroy()
             }
         }
-
-        return checkError("initBuffer")
+        return true
     }
 
     fun initTexture(): Boolean {
@@ -259,14 +262,15 @@ private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 
                 image(GL_RGBA32F, shadowSize, GL_RGBA, GL_FLOAT)
             }
         }
-        return checkError("initTexture")
+        return true
     }
 
     fun initFramebuffer(): Boolean {
 
         initFramebuffers(framebufferName) {
 
-            at(Framebuffer.DEPTH) {checkError("b")
+            at(Framebuffer.DEPTH) {
+                checkError("b")
                 texture(GL_COLOR_ATTACHMENT0, textureName[Framebuffer.DEPTH])
                 checkError("c")
                 renderbuffer(GL_DEPTH_ATTACHMENT, renderbufferName[Framebuffer.DEPTH])
@@ -282,7 +286,7 @@ private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 
 
         withFramebuffer { if (!complete) return false }
 
-        return checkError("initFramebuffer")
+        return true
     }
 
     override fun render(): Boolean {
@@ -309,11 +313,12 @@ private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 
             val renderW = Mat4()
 
             usingProgram(programName[Framebuffer.RENDER]) {
+
                 renderP to Uniform.Render.p
                 renderV to Uniform.Render.v
                 renderW to Uniform.Render.w
                 0 to Uniform.Render.shadow
-                glUniform(Uniform.Render.pointLightPosition, 0, 0, 10)
+                glUniform(Uniform.Render.pointLightPosition, 0f, 0f, 10f)
                 glUniform(Uniform.Render.clipNearFar, 0.01f, 10f)
                 glUniform(Uniform.Render.bias, 0.002f)
 
@@ -329,6 +334,7 @@ private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 
         glViewport(shadowSize)
 
         glBindFramebuffer(framebufferName[Framebuffer.DEPTH])
+
         glClearDepthBuffer(1f)
 
         glDrawElements(elementCount, GL_UNSIGNED_SHORT)
@@ -344,7 +350,7 @@ private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 
         glClearDepthBuffer(1f)
         glClearColorBuffer(Vec4(0f, 0f, 0f, 1f))
 
-        withTexture2d(GL_TEXTURE0, textureName[Framebuffer.DEPTH]) {
+        withTexture2d(0, textureName[Framebuffer.DEPTH]) {
             glDrawElements(elementCount, GL_UNSIGNED_SHORT)
         }
 
@@ -353,7 +359,13 @@ private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 
 
 
     override fun end(): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
+        glDeletePrograms(programName)
+        glDeleteFramebuffers(framebufferName)
+        glDeleteBuffers(bufferName)
+        glDeleteTextures(textureName)
+
+        return checkError("end")
     }
 
 }
