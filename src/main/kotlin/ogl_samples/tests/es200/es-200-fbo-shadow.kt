@@ -28,7 +28,7 @@ fun main(args: Array<String>) {
     es_200_fbo_shadow().loop()
 }
 
-private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 2, 0, Vec2(0f, -glm.PIf * 0.3f)) {
+private class es_200_fbo_shadow : Test("es-200-fbo-shadow", Caps.Profile.ES, 2, 0, Vec2(0f, -glm.PIf * 0.3f)) {
 
     val VERT_SHADER_SOURCE_DEPTH = "es-200/fbo-shadow-depth.vert"
     val FRAG_SHADER_SOURCE_DEPTH = "es-200/fbo-shadow-depth.frag"
@@ -215,9 +215,9 @@ private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 
     fun initBuffer(): Boolean {
 
         initBuffers(bufferName) {
-            withElementAt(Buffer.ELEMENT) {
-                data(elementData, GL_STATIC_DRAW)
-            }
+
+            withElementAt(Buffer.ELEMENT) { data(elementData, GL_STATIC_DRAW) }
+
             withArrayAt(Buffer.VERTEX) {
 
                 val vertexData = bufferBig(vertexSize)
@@ -245,10 +245,8 @@ private class es_200_fbo_shadow : Test("es-200-draw-elements", Caps.Profile.ES, 
             at(Attachment.COLORBUFFER) { image(GL_RGBA, windowSize, GL_RGBA, GL_UNSIGNED_BYTE) }
 
             at(Attachment.DEPTHBUFFER) {
-                wrapS = clampToEdge
-                wrapT = clampToEdge
-                minFilter = linear
-                magFilter = linear
+                wrap(s = clampToEdge, t = clampToEdge)
+                filter(min = linear, mag = linear)
                 image(GL_RGBA32F, shadowSize, GL_RGBA, GL_FLOAT)
             }
         }
