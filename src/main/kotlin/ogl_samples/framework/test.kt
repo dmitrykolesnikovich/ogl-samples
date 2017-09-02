@@ -203,8 +203,7 @@ abstract class Test(
         return true // TODO
     }
 
-    fun checkFramebuffer(framebufferName: IntBuffer) = checkFramebuffer(framebufferName[0])
-    fun checkFramebuffer(framebufferName: Int): Boolean {
+    fun checkFramebuffer(): Boolean {
         val status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         return if (status != GL_FRAMEBUFFER_COMPLETE) {
             println("OpenGL Error(${when (status) {

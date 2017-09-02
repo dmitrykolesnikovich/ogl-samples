@@ -91,8 +91,7 @@ private class es_300_draw_elements : TestA("es-300-draw-elements", Profile.ES, 3
 
     override fun render(): Boolean {
 
-        val buffers = GL_BACK
-        glDrawBuffers(buffers)
+        glDrawBuffers(GL_BACK)
 
         // Compute the MVP (Model View Projection matrix)
         val projection = glm.perspective(glm.PIf * 0.25f, 4f / 3f, 0.1f, 100f)

@@ -215,7 +215,7 @@ private class es_300_fbo_srgb : Test("es-300-fbo-srgb", Profile.ES, 3, 0) {
             texture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureName[Texture.RENDERBUFFER])
 
             framebufferEncoding = GL_COLOR_ATTACHMENT0.colorEncoding
-            check = checkFramebuffer(name)
+            check = checkFramebuffer()
         }
 
         if (framebufferEncoding != GL_SRGB)
