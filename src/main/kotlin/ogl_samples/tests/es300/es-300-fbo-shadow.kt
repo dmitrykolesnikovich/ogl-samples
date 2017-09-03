@@ -6,28 +6,20 @@ import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
-import glm_.vec4.Vec4
 import glm_.vec4.Vec4b
 import glm_.vec4.Vec4ub
 import ogl_samples.framework.Compiler
 import ogl_samples.framework.Test
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL12.*
-import org.lwjgl.opengl.GL13.GL_TEXTURE0
-import org.lwjgl.opengl.GL13.glActiveTexture
-import org.lwjgl.opengl.GL14.*
-import org.lwjgl.opengl.GL15.*
-import org.lwjgl.opengl.GL20.*
+import org.lwjgl.opengl.GL14.GL_DEPTH_COMPONENT24
+import org.lwjgl.opengl.GL15.GL_STATIC_DRAW
+import org.lwjgl.opengl.GL15.glDeleteBuffers
+import org.lwjgl.opengl.GL20.glDrawBuffers
+import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL30.*
-import org.lwjgl.opengl.GL32.glFramebufferTexture
-import org.lwjgl.opengl.GL42.*
-import uno.buffer.bufferBig
-import uno.buffer.destroy
-import uno.buffer.intBufferBig
-import uno.buffer.shortBufferOf
+import uno.buffer.*
 import uno.caps.Caps
-import uno.gl.fBuf
-import uno.gl.v4Buf
+import uno.glf.Vertex
 import uno.glf.glf
 import uno.glf.semantic
 import uno.gln.*
@@ -45,24 +37,15 @@ private class es_300_fbo_shadow : Test("es-300-fbo-shadow", Caps.Profile.ES, 3, 
 
     val vertexCount = 8
     val vertexSize = vertexCount * glf.pos3_col4b.stride
-    val vertices = arrayOf(
-            Vec3(-1.0f, -1.0f, 0.0f),
-            Vec3(+1.0f, -1.0f, 0.0f),
-            Vec3(+1.0f, +1.0f, 0.0f),
-            Vec3(-1.0f, +1.0f, 0.0f),
-            Vec3(-0.1f, -0.1f, 0.2f),
-            Vec3(+0.1f, -0.1f, 0.2f),
-            Vec3(+0.1f, +0.1f, 0.2f),
-            Vec3(-0.1f, +0.1f, 0.2f))
-    val colors = arrayOf(
-            Vec4b(255, 127, 0, 255),
-            Vec4b(255, 127, 0, 255),
-            Vec4b(255, 127, 0, 255),
-            Vec4b(255, 127, 0, 255),
-            Vec4b(0, 127, 255, 255),
-            Vec4b(0, 127, 255, 255),
-            Vec4b(0, 127, 255, 255),
-            Vec4b(0, 127, 255, 255))
+    val vertexData = bufferOf(
+            Vertex.pos3_col4ub(Vec3(-1.0f, -1.0f, 0.0f), Vec4ub(255, 127, 0, 255)),
+            Vertex.pos3_col4ub(Vec3(+1.0f, -1.0f, 0.0f), Vec4ub(255, 127, 0, 255)),
+            Vertex.pos3_col4ub(Vec3(+1.0f, +1.0f, 0.0f), Vec4ub(255, 127, 0, 255)),
+            Vertex.pos3_col4ub(Vec3(-1.0f, +1.0f, 0.0f), Vec4ub(255, 127, 0, 255)),
+            Vertex.pos3_col4ub(Vec3(-0.1f, -0.1f, 0.2f), Vec4ub(0, 127, 255, 255)),
+            Vertex.pos3_col4ub(Vec3(+0.1f, -0.1f, 0.2f), Vec4ub(0, 127, 255, 255)),
+            Vertex.pos3_col4ub(Vec3(+0.1f, +0.1f, 0.2f), Vec4ub(0, 127, 255, 255)),
+            Vertex.pos3_col4ub(Vec3(-0.1f, +0.1f, 0.2f), Vec4ub(0, 127, 255, 255)))
 
     val elementCount = 12
     val elementSize = elementCount * Short.BYTES
@@ -200,17 +183,7 @@ private class es_300_fbo_shadow : Test("es-300-fbo-shadow", Caps.Profile.ES, 3, 
 
             withElementAt(Buffer.ELEMENT) { data(elementData, GL_STATIC_DRAW) }
 
-            withArrayAt(Buffer.VERTEX) {
-
-                val vertexData = bufferBig(vertexSize)
-                for (i in 0 until vertexCount) {
-                    vertices[i].to(vertexData, i * glf.pos3_col4b.stride)
-                    colors[i].to(vertexData, i * glf.pos3_col4b.stride + Vec3.size)
-                }
-                data(vertexData, GL_STATIC_DRAW)
-
-                vertexData.destroy()
-            }
+            withArrayAt(Buffer.VERTEX) { data(vertexData, GL_STATIC_DRAW) }
         }
         return true
     }
@@ -361,8 +334,11 @@ private class es_300_fbo_shadow : Test("es-300-fbo-shadow", Caps.Profile.ES, 3, 
 
         glDeletePrograms(programName)
         glDeleteFramebuffers(framebufferName)
+        glDeleteVertexArrays(vertexArrayName)
         glDeleteBuffers(bufferName)
         glDeleteTextures(textureName)
+
+        destroyBuf(framebufferName, bufferName, textureName, vertexData, elementData)
 
         return checkError("end")
     }

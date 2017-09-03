@@ -7,7 +7,9 @@ package ogl_samples.tests.es300
 import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
+import ogl_samples.framework.Compiler
 import ogl_samples.framework.Test
+import ogl_samples.framework.TestB
 import org.lwjgl.opengl.ARBFramebufferObject.*
 import org.lwjgl.opengl.ARBMapBufferRange.GL_MAP_INVALIDATE_BUFFER_BIT
 import org.lwjgl.opengl.ARBMapBufferRange.GL_MAP_WRITE_BIT
@@ -40,95 +42,44 @@ fun main(args: Array<String>) {
     es_300_fbo_srgb().loop()
 }
 
-private class es_300_fbo_srgb : Test("es-300-fbo-srgb", Profile.ES, 3, 0) {
+private class es_300_fbo_srgb : TestB("es-300-fbo-srgb", Profile.ES, 3, 0) {
 
     val SHADER_SOURCE_RENDER = "es-300/fbo-srgb"
     val SHADER_SOURCE_SPLASH = "es-300/fbo-srgb-blit"
 
-    object Buffer {
-        val VERTEX = 0
-        val TRANSFORM = 1
-        val MAX = 2
-    }
-
-    object Texture {
-        val COLORBUFFER = 0
-        val RENDERBUFFER = 1
-        val MAX = 2
-    }
-
-    object Program {
-        val RENDER = 0
-        val SPLASH = 1
-        val MAX = 2
-    }
-
-    object Shader {
-        val VERT_RENDER = 0
-        val FRAG_RENDER = 1
-        val VERT_SPLASH = 2
-        val FRAG_SPLASH = 3
-        val MAX = 4
-    }
-
-    val programName = IntArray(Program.MAX)
-    val vertexArrayName = intBufferBig(Program.MAX)
-    val bufferName = intBufferBig(Buffer.MAX)
-    val textureName = intBufferBig(Texture.MAX)
-    val framebufferName = intBufferBig(1)
-    var framebufferScale = 2
-    var vertexCount = 0
-
     override fun begin(): Boolean {
-
-        var validated = true
-
         glEnable(GL_CULL_FACE)
-
-        if (validated)
-            validated = initProgram()
-        if (validated)
-            validated = initBuffer()
-        if (validated)
-            validated = initVertexArray()
-        if (validated)
-            validated = initTexture()
-        if (validated)
-            validated = initFramebuffer()
-
-        return validated
+        return super.begin()
     }
 
-    fun initProgram(): Boolean {
+    override fun initProgram(): Boolean {
 
         var validated = true
 
-        val compiler = ogl_samples.framework.Compiler()
+        val compiler = Compiler()
 
-        val shaderName = mutableListOf<Int>()
+        val shaderName = IntArray(Shader.MAX)
 
         initPrograms(programName) {
 
             if (validated) {
 
-                shaderName += compiler.create("$SHADER_SOURCE_RENDER.vert")
-                shaderName += compiler.create("$SHADER_SOURCE_RENDER.frag")
+                shaderName[Shader.VERT_RENDER] = compiler.create("$SHADER_SOURCE_RENDER.vert")
+                shaderName[Shader.FRAG_RENDER] = compiler.create("$SHADER_SOURCE_RENDER.frag")
 
                 with(Program.RENDER) {
-                    this += shaderName[Shader.VERT_RENDER]
-                    this += shaderName[Shader.FRAG_RENDER]
+                    attach(shaderName[Shader.VERT_RENDER], shaderName[Shader.FRAG_RENDER])
                     link()
                 }
             }
 
             if (validated) {
 
-                shaderName += compiler.create("$SHADER_SOURCE_SPLASH.vert")
-                shaderName += compiler.create("$SHADER_SOURCE_SPLASH.frag")
+                shaderName[Shader.VERT_SPLASH] += compiler.create("$SHADER_SOURCE_SPLASH.vert")
+                shaderName[Shader.FRAG_SPLASH] = compiler.create("$SHADER_SOURCE_SPLASH.frag")
 
                 with(Program.SPLASH) {
-                    attach(shaderName[Shader.VERT_SPLASH])
-                    attach(shaderName[Shader.FRAG_SPLASH])
+                    attach(shaderName[Shader.VERT_SPLASH], shaderName[Shader.FRAG_SPLASH])
                     link()
                 }
             }
@@ -149,11 +100,12 @@ private class es_300_fbo_srgb : Test("es-300-fbo-srgb", Profile.ES, 3, 0) {
         return validated && checkError("initProgram")
     }
 
-    fun initBuffer(): Boolean {
+    override fun initBuffer(): Boolean {
 
         val vertices = generateIcosahedron(4)
         vertexCount = vertices.size * Vec3.length
         val vertexData = bufferBig(vertexCount * Vec3.size)
+
         vertices.forEachIndexed { i, it -> it.to(vertexData, i * Vec3.size) }
 
         initBuffers(bufferName) {
@@ -171,7 +123,7 @@ private class es_300_fbo_srgb : Test("es-300-fbo-srgb", Profile.ES, 3, 0) {
         return true
     }
 
-    fun initTexture(): Boolean {
+    override fun initTexture(): Boolean {
 
         val windowSize = windowSize * framebufferScale
 
@@ -193,7 +145,7 @@ private class es_300_fbo_srgb : Test("es-300-fbo-srgb", Profile.ES, 3, 0) {
         return true
     }
 
-    fun initVertexArray(): Boolean {
+    override fun initVertexArray(): Boolean {
 
         initVertexArrays(vertexArrayName) {
 
@@ -204,7 +156,7 @@ private class es_300_fbo_srgb : Test("es-300-fbo-srgb", Profile.ES, 3, 0) {
         return true
     }
 
-    fun initFramebuffer(): Boolean {
+    override fun initFramebuffer(): Boolean {
 
         var framebufferEncoding = 0
         var check = true

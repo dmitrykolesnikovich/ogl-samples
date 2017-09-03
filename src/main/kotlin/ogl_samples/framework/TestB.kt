@@ -2,6 +2,7 @@ package ogl_samples.framework
 
 import gli.wasInit
 import glm_.BYTES
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL20.glDeleteProgram
@@ -18,7 +19,8 @@ import uno.kotlin.buffers.filter
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
-abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: Int) : Test(title, profile, major, minor) {
+
+abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: Int) : Test(title, profile, major, minor) {
 
     var elementCount = 0
     var elementSize = 0
@@ -31,14 +33,47 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
     object Buffer {
         val VERTEX = 0
         val ELEMENT = 1
+        val TRANSFORM = 2
+        val MAX = 3
+    }
+
+    object Texture {
+        val COLORBUFFER = 0
+        val RENDERBUFFER = 1
         val MAX = 2
     }
 
+    object Program {
+        val RENDER = 0
+        val SPLASH = 1
+        val MAX = 2
+    }
+
+    object Shader {
+        val VERT_RENDER = 0
+        val FRAG_RENDER = 1
+        val VERT_SPLASH = 2
+        val FRAG_SPLASH = 3
+        val MAX = 4
+    }
+
     val bufferName = intBufferBig(Buffer.MAX).also { glGenBuffers(it) }
-    var programName = 0
-    var uniformMVP = 0
-    var uniformDiffuse = 0
-    val vertexArrayName = intBufferBig(1)
+
+    var programName = IntArray(Program.MAX)
+
+    val textureName = intBufferBig(Texture.MAX)
+
+    object Uniform {
+        var mvp = 0
+        var diffuse = 0
+        var transform = 0
+    }
+
+    val framebufferName = intBufferBig(1)
+
+    val framebufferScale = 2
+
+    val vertexArrayName = intBufferBig(Program.MAX)
 
     override fun begin(): Boolean {
 
@@ -50,8 +85,13 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
         if (validated)
             validated = initBuffer()
 
-        if(validated)
+        if (validated)
             validated = initVertexArray()
+
+        if(validated)
+            validated = initTexture()
+        if(validated)
+            validated = initFramebuffer()
 
         return validated
     }
@@ -66,7 +106,7 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
 
         initElementeBuffer(*elements)
 
-        return checkError("TestB.initBuffers")
+        return checkError("TestA.initBuffers")
     }
 
     open fun initArrayBuffer(vararg args: Float) {
@@ -97,7 +137,7 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
 
     open fun initVertexArray(vertexLayout: VertexLayout): Boolean {
 
-        when(vertexLayout) {
+        when (vertexLayout) {
 
             glf.pos2 -> {
 
@@ -107,23 +147,26 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
                 }
             }
         }
-        return checkError("TestB.initVertexArray")
+        return checkError("TestA.initVertexArray")
     }
+
+    open fun initTexture() = true
+    open fun initFramebuffer() = true
 
     override abstract fun render(): Boolean
 
     override fun end(): Boolean {
 
-        if (glIsProgram(programName)) glDeleteProgram(programName)
+        programName.filter(GL20::glIsProgram).map(GL20::glDeleteProgram)
         bufferName.filter(GL20::glIsProgram).map(GL20::glDeleteProgram)
 
         if (wasInit { positionData }) positionData.destroy()
         if (wasInit { elementData }) elementData.destroy()
 
-        if(glIsVertexArray(vertexArrayName[0])) glDeleteVertexArrays(vertexArrayName)
+        if (glIsVertexArray(vertexArrayName[0])) glDeleteVertexArrays(vertexArrayName)
 
         destroyBuf(bufferName, vertexArrayName)
 
-        return checkError("TestB.initVertexArray")
+        return checkError("TestA.initVertexArray")
     }
 }
