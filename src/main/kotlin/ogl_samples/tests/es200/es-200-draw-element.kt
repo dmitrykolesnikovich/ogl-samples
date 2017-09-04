@@ -58,7 +58,7 @@ private class es_200_draw_elements : TestA("es-200-draw-elements", Profile.ES, 2
             programName = compiler.create("$SHADER_SOURCE.vert", "$SHADER_SOURCE.frag")
 
             withProgram(programName) {
-                "Position".location = semantic.attr.POSITION
+                "Position".attrib = semantic.attr.POSITION
                 link()
             }
 
@@ -69,8 +69,8 @@ private class es_200_draw_elements : TestA("es-200-draw-elements", Profile.ES, 2
         // Get variables locations
         if (validated)
             withProgram(programName) {
-                uniformMVP = "MVP".location
-                uniformDiffuse = "Diffuse".location
+                uniformMVP = "MVP".uniform
+                uniformDiffuse = "Diffuse".uniform
             }
 
         // Set some variables

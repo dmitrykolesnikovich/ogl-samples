@@ -22,6 +22,7 @@ import uno.glf.Vertex
 import uno.glf.glf
 import uno.glf.semantic
 import uno.gln.*
+import java.nio.ByteBuffer
 
 fun main(args: Array<String>) {
     es_200_fbo_shadow().loop()
@@ -150,7 +151,7 @@ private class es_200_fbo_shadow : Test("es-200-fbo-shadow", Caps.Profile.ES, 2, 
 
             programName[Framebuffer.DEPTH] = glCreateProgram {
                 attach(shaderName[Shader.VERT_DEPTH], shaderName[Shader.FRAG_DEPTH])
-                "Position".location = semantic.attr.POSITION
+                "Position".attrib = semantic.attr.POSITION
                 link()
             }
 
@@ -160,11 +161,11 @@ private class es_200_fbo_shadow : Test("es-200-fbo-shadow", Caps.Profile.ES, 2, 
         if (validated)
             with(Uniform.Light) {
                 withProgram(programName[Framebuffer.DEPTH]) {
-                    proj = "LightProj".location
-                    view = "LightView".location
-                    world = "LightWorld".location
-                    pointLightPosition = "PointLightPosition".location
-                    clipNearFar = "ShadowClipNearFar".location
+                    proj = "LightProj".uniform
+                    view = "LightView".uniform
+                    world = "LightWorld".uniform
+                    pointLightPosition = "PointLightPosition".uniform
+                    clipNearFar = "ShadowClipNearFar".uniform
                 }
             }
 
@@ -176,8 +177,8 @@ private class es_200_fbo_shadow : Test("es-200-fbo-shadow", Caps.Profile.ES, 2, 
 
             programName[Framebuffer.RENDER] = glCreateProgram {
                 attach(shaderName[Shader.VERT_RENDER], shaderName[Shader.FRAG_RENDER])
-                "Position".location = semantic.attr.POSITION
-                "Color".location = semantic.attr.COLOR
+                "Position".attrib = semantic.attr.POSITION
+                "Color".attrib = semantic.attr.COLOR
                 link()
             }
 
@@ -187,13 +188,13 @@ private class es_200_fbo_shadow : Test("es-200-fbo-shadow", Caps.Profile.ES, 2, 
         if (validated)
             with(Uniform.Render) {
                 withProgram(programName[Framebuffer.RENDER]) {
-                    p = "P".location
-                    v = "V".location
-                    w = "W".location
-                    shadow = "Shadow".location
-                    pointLightPosition = "PointLightPosition".location
-                    clipNearFar = "ShadowClipNearFar".location
-                    bias = "Bias".location
+                    p = "P".uniform
+                    v = "V".uniform
+                    w = "W".uniform
+                    shadow = "Shadow".uniform
+                    pointLightPosition = "PointLightPosition".uniform
+                    clipNearFar = "ShadowClipNearFar".uniform
+                    bias = "Bias".uniform
                 }
             }
 

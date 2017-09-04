@@ -139,8 +139,8 @@ private class es_300_fbo_shadow : Test("es-300-fbo-shadow", Caps.Profile.ES, 3, 
 
             programName[Program.RENDER] = glCreateProgram {
                 attach(shaderName[Shader.VERT_RENDER], shaderName[Shader.FRAG_RENDER])
-                "Position".location = semantic.attr.POSITION
-                "Color".location = semantic.attr.COLOR
+                "Position".attrib = semantic.attr.POSITION
+                "Color".attrib = semantic.attr.COLOR
                 link()
             }
 
@@ -150,9 +150,9 @@ private class es_300_fbo_shadow : Test("es-300-fbo-shadow", Caps.Profile.ES, 3, 
         if (validated)
             with(Uniform.Render) {
                 withProgram(programName[Program.RENDER]) {
-                    shadow = "Shadow".location
-                    mvp = "MVP".location
-                    depthBiasMVP = "DepthBiasMVP".location
+                    shadow = "Shadow".uniform
+                    mvp = "MVP".uniform
+                    depthBiasMVP = "DepthBiasMVP".uniform
                 }
             }
 
@@ -164,7 +164,7 @@ private class es_300_fbo_shadow : Test("es-300-fbo-shadow", Caps.Profile.ES, 3, 
 
             programName[Program.DEPTH] = glCreateProgram {
                 attach(shaderName[Shader.VERT_DEPTH], shaderName[Shader.FRAG_DEPTH])
-                "Position".location = semantic.attr.POSITION
+                "Position".attrib = semantic.attr.POSITION
                 link()
             }
 
@@ -172,7 +172,7 @@ private class es_300_fbo_shadow : Test("es-300-fbo-shadow", Caps.Profile.ES, 3, 
         }
 
         if (validated)
-            withProgram(programName[Program.DEPTH]) { Uniform.depthMVP = "MVP".location }
+            withProgram(programName[Program.DEPTH]) { Uniform.depthMVP = "MVP".uniform }
 
         return validated
     }

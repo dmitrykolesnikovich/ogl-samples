@@ -40,7 +40,11 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
     object Texture {
         val COLORBUFFER = 0
         val RENDERBUFFER = 1
-        val MAX = 2
+        val RGBA4 = COLORBUFFER
+        val RGBA4_REV = RENDERBUFFER
+        val BGRA4 = 2
+        val BGRA4_REV = 3
+        val MAX = 4
     }
 
     object Program {
@@ -90,6 +94,7 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
 
         if(validated)
             validated = initTexture()
+
         if(validated)
             validated = initFramebuffer()
 
@@ -109,11 +114,13 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
         return checkError("TestA.initBuffers")
     }
 
-    open fun initArrayBuffer(vertices: ByteBuffer) {
+    open fun initArrayBuffer(vertices: ByteBuffer): Boolean {
 
         glBindBuffer(GL_ARRAY_BUFFER, bufferName[Buffer.VERTEX])
-        glBufferData(GL_ARRAY_BUFFER, positionData, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+        return true
     }
 
     open fun initElementeBuffer(elements: ShortBuffer) {
@@ -121,7 +128,7 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
         elementCount = elements.capacity()
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferName[Buffer.ELEMENT])
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, elementData, GL_STATIC_DRAW)
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements, GL_STATIC_DRAW)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
     }
 
@@ -129,15 +136,9 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
 
     open fun initVertexArray(vertexLayout: VertexLayout): Boolean {
 
-        when (vertexLayout) {
-
-            glf.pos2 -> {
-
-                initVertexArray(vertexArrayName) {
-                    array(bufferName[Buffer.VERTEX], glf.pos2)
-                    element(bufferName[Buffer.ELEMENT])
-                }
-            }
+        initVertexArray(vertexArrayName) {
+            array(bufferName[Buffer.VERTEX], vertexLayout)
+            element(bufferName[Buffer.ELEMENT])
         }
         return checkError("TestA.initVertexArray")
     }

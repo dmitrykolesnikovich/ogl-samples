@@ -70,7 +70,7 @@ private class es_300_draw_elements : TestA("es-300-draw-elements", Profile.ES, 3
             programName = compiler.create("$SHADER_SOURCE.vert", "$SHADER_SOURCE.frag")
 
             withProgram(programName) {
-                "Position".location = semantic.attr.POSITION
+                "Position".attrib = semantic.attr.POSITION
                 link()
             }
 

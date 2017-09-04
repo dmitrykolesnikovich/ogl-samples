@@ -6,35 +6,28 @@ package ogl_samples.tests.es300
 
 import glm_.glm
 import glm_.mat4x4.Mat4
-import glm_.vec2.Vec2
 import glm_.vec3.Vec3
-import glm_.vec4.Vec4
 import ogl_samples.framework.Compiler
-import ogl_samples.framework.Test
 import ogl_samples.framework.TestB
-import org.lwjgl.opengl.ARBFramebufferObject.*
+import org.lwjgl.opengl.ARBFramebufferObject.GL_COLOR_ATTACHMENT0
+import org.lwjgl.opengl.ARBFramebufferObject.GL_DEPTH_ATTACHMENT
 import org.lwjgl.opengl.ARBMapBufferRange.GL_MAP_INVALIDATE_BUFFER_BIT
 import org.lwjgl.opengl.ARBMapBufferRange.GL_MAP_WRITE_BIT
-import org.lwjgl.opengl.ARBUniformBufferObject.*
+import org.lwjgl.opengl.ARBUniformBufferObject.GL_UNIFORM_BUFFER
+import org.lwjgl.opengl.ARBUniformBufferObject.glBindBufferBase
 import org.lwjgl.opengl.ARBVertexArrayObject.glBindVertexArray
-import org.lwjgl.opengl.ARBVertexArrayObject.glDeleteVertexArrays
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL13.GL_TEXTURE0
-import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL14.GL_DEPTH_COMPONENT24
-import org.lwjgl.opengl.GL15.*
+import org.lwjgl.opengl.GL15.GL_STATIC_DRAW
 import org.lwjgl.opengl.GL20.glUseProgram
 import org.lwjgl.opengl.GL21.GL_SRGB
 import org.lwjgl.opengl.GL21.GL_SRGB8_ALPHA8
-import uno.buffer.*
+import uno.buffer.bufferOf
 import uno.caps.Caps.Profile
-import uno.glf.Vertex
 import uno.glf.generateIcosahedron
 import uno.glf.glf
 import uno.glf.semantic
 import uno.gln.*
-import java.nio.ByteBuffer
 
 /**
  * Created by GBarbieri on 30.03.2017.
@@ -210,20 +203,6 @@ private class es_300_fbo_srgb : TestB("es-300-fbo-srgb", Profile.ES, 3, 0) {
                 glDrawArraysInstanced(3, 1)
             }
         }
-
-        return true
-    }
-
-    override fun end(): Boolean {
-
-        glDeleteFramebuffers(framebufferName)
-        glDeletePrograms(programName)
-
-        glDeleteBuffers(bufferName)
-        glDeleteTextures(textureName)
-        glDeleteVertexArrays(vertexArrayName)
-
-        destroyBuf(framebufferName, bufferName, textureName, vertexArrayName)
 
         return true
     }
