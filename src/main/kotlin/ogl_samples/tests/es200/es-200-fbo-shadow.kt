@@ -35,7 +35,6 @@ private class es_200_fbo_shadow : Test("es-200-fbo-shadow", Caps.Profile.ES, 2, 
     val FRAG_SHADER_SOURCE_RENDER = "es-200/fbo-shadow-render.frag"
 
     val vertexCount = 8
-    val vertexSize = vertexCount * glf.pos3_col4b.stride
     val vertexData = bufferOf(
             Vertex.pos3_col4ub(Vec3(-1.0f, -1.0f, 0.0f), Vec4ub(255, 127, 0, 255)),
             Vertex.pos3_col4ub(Vec3(+1.0f, -1.0f, 0.0f), Vec4ub(255, 127, 0, 255)),
@@ -47,7 +46,6 @@ private class es_200_fbo_shadow : Test("es-200-fbo-shadow", Caps.Profile.ES, 2, 
             Vertex.pos3_col4ub(Vec3(-0.1f, +0.1f, 0.2f), Vec4ub(0, 127, 255, 255)))
 
     val elementCount = 12
-    val elementSize = elementCount * Short.BYTES
     val elementData = shortBufferOf(
             0, 1, 2,
             2, 3, 0,

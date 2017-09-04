@@ -2,10 +2,13 @@ package ogl_samples.tests.es200
 
 import glm_.glm
 import glm_.mat4x4.Mat4
+import glm_.vec2.Vec2
 import glm_.vec4.Vec4
 import ogl_samples.framework.Compiler
 import ogl_samples.framework.TestA
 import org.lwjgl.opengl.GL11.*
+import uno.buffer.bufferOf
+import uno.buffer.shortBufferOf
 import uno.caps.Caps.Profile
 import uno.glf.glf
 import uno.glf.semantic
@@ -22,6 +25,17 @@ fun main(args: Array<String>) {
 private class es_200_draw_elements : TestA("es-200-draw-elements", Profile.ES, 2, 0) {
 
     val SHADER_SOURCE = "/es-200/flat-color"
+
+    override var vertexCount = 4
+    override var positionData = bufferOf(
+            Vec2(-1f, -1f),
+            Vec2(+1f, -1f),
+            Vec2(+1f, +1f),
+            Vec2(-1f, +1f))
+
+    override var elementData = shortBufferOf(
+            0, 1, 2,
+            0, 2, 3)
 
     override fun begin(): Boolean {
 
@@ -68,16 +82,6 @@ private class es_200_draw_elements : TestA("es-200-draw-elements", Profile.ES, 2
 
         return validated && checkError("initProgram")
     }
-
-    override fun initBuffer() = initBuffers(
-            floatArrayOf(
-                    -1f, -1f,
-                    +1f, -1f,
-                    +1f, +1f,
-                    -1f, +1f),
-            shortArrayOf(
-                    0, 1, 2,
-                    0, 2, 3))
 
     override fun render(): Boolean {
 

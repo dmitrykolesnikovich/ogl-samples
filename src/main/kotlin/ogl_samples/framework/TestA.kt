@@ -1,32 +1,31 @@
 package ogl_samples.framework
 
 import gli.wasInit
-import glm_.BYTES
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL20.glDeleteProgram
 import org.lwjgl.opengl.GL20.glIsProgram
 import org.lwjgl.opengl.GL30.glDeleteVertexArrays
 import org.lwjgl.opengl.GL30.glIsVertexArray
-import uno.buffer.*
+import uno.buffer.destroy
+import uno.buffer.destroyBuf
+import uno.buffer.intBufferBig
 import uno.caps.Caps
 import uno.glf.VertexLayout
 import uno.glf.glf
 import uno.gln.checkError
 import uno.gln.initVertexArray
 import uno.kotlin.buffers.filter
-import java.nio.FloatBuffer
+import java.nio.ByteBuffer
 import java.nio.ShortBuffer
 
 abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: Int) : Test(title, profile, major, minor) {
 
     var elementCount = 0
-    var elementSize = 0
-    lateinit var elementData: ShortBuffer
+    open lateinit var elementData: ShortBuffer
 
-    var vertexCount = 0
-    var positionSize = 0
-    lateinit var positionData: FloatBuffer
+    open var vertexCount = 0
+    open lateinit var positionData: ByteBuffer
 
     object Buffer {
         val VERTEX = 0
@@ -58,35 +57,25 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
 
     open fun initProgram() = true
 
-    open fun initBuffer() = true
+    open fun initBuffer(): Boolean {
 
-    open fun initBuffers(vertices: FloatArray, elements: ShortArray): Boolean {
+        initArrayBuffer(positionData)
 
-        initArrayBuffer(*vertices)
-
-        initElementeBuffer(*elements)
+        initElementeBuffer(elementData)
 
         return checkError("TestB.initBuffers")
     }
 
-    open fun initArrayBuffer(vararg args: Float) {
-
-        positionData = floatBufferOf(*args)
-
-        vertexCount = args.size
-        positionSize = vertexCount * Float.BYTES
+    open fun initArrayBuffer(vertices: ByteBuffer) {
 
         glBindBuffer(GL_ARRAY_BUFFER, bufferName[Buffer.VERTEX])
         glBufferData(GL_ARRAY_BUFFER, positionData, GL_STATIC_DRAW)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
     }
 
-    open fun initElementeBuffer(vararg args: Short) {
+    open fun initElementeBuffer(elements: ShortBuffer) {
 
-        elementData = shortBufferOf(*args)
-
-        elementCount = args.size
-        elementSize = elementCount * Short.BYTES
+        elementCount = elements.capacity()
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferName[Buffer.ELEMENT])
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, elementData, GL_STATIC_DRAW)

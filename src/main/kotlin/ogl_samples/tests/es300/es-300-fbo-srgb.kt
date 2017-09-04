@@ -6,7 +6,9 @@ package ogl_samples.tests.es300
 
 import glm_.glm
 import glm_.mat4x4.Mat4
+import glm_.vec2.Vec2
 import glm_.vec3.Vec3
+import glm_.vec4.Vec4
 import ogl_samples.framework.Compiler
 import ogl_samples.framework.Test
 import ogl_samples.framework.TestB
@@ -16,6 +18,7 @@ import org.lwjgl.opengl.ARBMapBufferRange.GL_MAP_WRITE_BIT
 import org.lwjgl.opengl.ARBUniformBufferObject.*
 import org.lwjgl.opengl.ARBVertexArrayObject.glBindVertexArray
 import org.lwjgl.opengl.ARBVertexArrayObject.glDeleteVertexArrays
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL13.glActiveTexture
@@ -24,15 +27,14 @@ import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.glUseProgram
 import org.lwjgl.opengl.GL21.GL_SRGB
 import org.lwjgl.opengl.GL21.GL_SRGB8_ALPHA8
-import uno.buffer.bufferBig
-import uno.buffer.destroy
-import uno.buffer.destroyBuf
-import uno.buffer.intBufferBig
+import uno.buffer.*
 import uno.caps.Caps.Profile
+import uno.glf.Vertex
 import uno.glf.generateIcosahedron
 import uno.glf.glf
 import uno.glf.semantic
 import uno.gln.*
+import java.nio.ByteBuffer
 
 /**
  * Created by GBarbieri on 30.03.2017.
@@ -104,21 +106,12 @@ private class es_300_fbo_srgb : TestB("es-300-fbo-srgb", Profile.ES, 3, 0) {
 
         val vertices = generateIcosahedron(4)
         vertexCount = vertices.size * Vec3.length
-        val vertexData = bufferBig(vertexCount * Vec3.size)
+        positionData = bufferOf(vertices)
 
-        vertices.forEachIndexed { i, it -> it.to(vertexData, i * Vec3.size) }
+        initArrayBuffer(positionData)
 
-        initBuffers(bufferName) {
-
-            withArrayAt(Buffer.VERTEX) { data(vertexData, GL_STATIC_DRAW) }
-
-            val uniformBufferOffset = glGetInteger(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT)
-            val uniformBlockSize = glm.max(Mat4.size, uniformBufferOffset)
-
-            withUniformAt(Buffer.TRANSFORM) { data(uniformBlockSize, GL_STATIC_DRAW) }
-        }
-
-        vertexData.destroy()
+        val uniformBlockSize = glm.max(Mat4.size, caps.limits.UNIFORM_BUFFER_OFFSET_ALIGNMENT)
+        withUniformBuffer(bufferName[Buffer.TRANSFORM]) { data(uniformBlockSize, GL_STATIC_DRAW) }
 
         return true
     }
@@ -130,15 +123,13 @@ private class es_300_fbo_srgb : TestB("es-300-fbo-srgb", Profile.ES, 3, 0) {
         initTextures2d(textureName) {
 
             at(Texture.COLORBUFFER) {
-                levels = 0..0
-                minFilter = linear
-                magFilter = linear
+                levels(base = 0, max = 0)
+                filter(min = linear, mag = linear)
                 storage(GL_SRGB8_ALPHA8, windowSize)
             }
             at(Texture.RENDERBUFFER) {
-                levels = 0..0
-                minFilter = nearest
-                magFilter = nearest
+                levels(base = 0, max = 0)
+                filter(min = nearest, mag = nearest)
                 storage(GL_DEPTH_COMPONENT24, windowSize)
             }
         }
@@ -148,73 +139,56 @@ private class es_300_fbo_srgb : TestB("es-300-fbo-srgb", Profile.ES, 3, 0) {
     override fun initVertexArray(): Boolean {
 
         initVertexArrays(vertexArrayName) {
-
-            at(Program.RENDER) {
-                array(bufferName[Buffer.VERTEX], glf.pos3)
-            }
+            at(Program.RENDER) { array(bufferName[Buffer.VERTEX], glf.pos3) }
+            at(Program.SPLASH) {}
         }
         return true
     }
 
     override fun initFramebuffer(): Boolean {
 
-        var framebufferEncoding = 0
-        var check = true
-
         initFramebuffer(framebufferName) {
 
-            texture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureName[Texture.COLORBUFFER])
-            texture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureName[Texture.RENDERBUFFER])
+            //  GL_FRAMEBUFFER, which is the default target, is equivalent to GL_DRAW_FRAMEBUFFER, we can then omit it
+            texture2D(GL_COLOR_ATTACHMENT0, textureName[Texture.COLORBUFFER])
+            texture2D(GL_DEPTH_ATTACHMENT, textureName[Texture.RENDERBUFFER])
 
-            framebufferEncoding = GL_COLOR_ATTACHMENT0.colorEncoding
-            check = checkFramebuffer()
+            if (getColorEncoding() != GL_SRGB)
+                return false
+
+            if (!complete)
+                return false
         }
-
-        if (framebufferEncoding != GL_SRGB)
-            return false
-
-        if (!check)
-            return false
-
 /*
 		GLint Encoding = -1;
 		glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_BACK_LEFT, GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING, &Encoding);
 		GLint Capable = 0;
 		glGetIntegerv(GL_FRAMEBUFFER_SRGB_CAPABLE_EXT, &Capable);
 */
-
         return true
     }
 
     override fun render(): Boolean {
 
-        withUniformBuffer(bufferName[Buffer.TRANSFORM]) {
-
-            val pointer = mapRange(Mat4.size, GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT)
+        mappingUniformBufferRange(bufferName[Buffer.TRANSFORM], Mat4.size, GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT) {
 
             //glm::mat4 Projection = glm::perspectiveFov(glm::pi<float>() * 0.25f, 640.f, 480.f, 0.1f, 100.0f);
-            val projection = glm.perspective(glm.PIf * 0.25f, windowSize, 0.1f, 100.0f)
+            val projection = glm.perspective(glm.PIf * 0.25f, windowSize, 0.1f, 100f)
 
-            projection * view to pointer
+            pointer = projection * view
 
-            // Make sure the uniform buffer is uploaded
-            glUnmapBuffer(GL_UNIFORM_BUFFER)
-        }
+        } // Automatically unmapped and unbinded, to make sure the uniform buffer is uploaded
 
         // Render to a sRGB framebuffer object.
         run {
-            depth {
-                test = true
-                func = lEqual
-            }
+            glEnable(GL_DEPTH_TEST)
+            glDepthFunc(GL_LEQUAL)
 
             glViewport(windowSize * framebufferScale)
-            glBindFramebuffer(GL_FRAMEBUFFER, framebufferName)
+            glBindFramebuffer(framebufferName)
 
-            clear {
-                depth(1f)
-                color(1.0f, 0.5f, 0.0f, 1.0f)
-            }
+            glClearDepthBuffer()
+            glClearColorBuffer(1f, 0.5f, 0f, 1f)
 
             glUseProgram(programName[Program.RENDER])
             glBindVertexArray(vertexArrayName[Program.RENDER])
@@ -229,13 +203,12 @@ private class es_300_fbo_srgb : TestB("es-300-fbo-srgb", Profile.ES, 3, 0) {
 
             glViewport(windowSize)
 
-            glBindFramebuffer(GL_FRAMEBUFFER)
+            glBindFramebuffer()
             glUseProgram(programName[Program.SPLASH])
-            glActiveTexture(GL_TEXTURE0)
-            glBindVertexArray(vertexArrayName[Program.SPLASH])
-            glBindTexture(GL_TEXTURE_2D, textureName[Texture.COLORBUFFER])
-
-            glDrawArraysInstanced(3, 1)
+            withTexture2d(0, textureName[Texture.COLORBUFFER]) {
+                glBindVertexArray(vertexArrayName[Program.SPLASH])
+                glDrawArraysInstanced(3, 1)
+            }
         }
 
         return true

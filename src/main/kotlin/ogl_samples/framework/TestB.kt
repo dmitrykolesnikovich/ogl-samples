@@ -3,12 +3,13 @@ package ogl_samples.framework
 import gli.wasInit
 import glm_.BYTES
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL20.glDeleteProgram
 import org.lwjgl.opengl.GL20.glIsProgram
-import org.lwjgl.opengl.GL30.glDeleteVertexArrays
-import org.lwjgl.opengl.GL30.glIsVertexArray
+import org.lwjgl.opengl.GL30
+import org.lwjgl.opengl.GL30.*
 import uno.buffer.*
 import uno.caps.Caps
 import uno.glf.VertexLayout
@@ -16,6 +17,7 @@ import uno.glf.glf
 import uno.gln.checkError
 import uno.gln.initVertexArray
 import uno.kotlin.buffers.filter
+import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
@@ -23,12 +25,10 @@ import java.nio.ShortBuffer
 abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: Int) : Test(title, profile, major, minor) {
 
     var elementCount = 0
-    var elementSize = 0
-    lateinit var elementData: ShortBuffer
+    open lateinit var elementData: ShortBuffer
 
-    var vertexCount = 0
-    var positionSize = 0
-    lateinit var positionData: FloatBuffer
+    open var vertexCount = 0
+    open lateinit var positionData: ByteBuffer
 
     object Buffer {
         val VERTEX = 0
@@ -98,35 +98,27 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
 
     open fun initProgram() = true
 
-    open fun initBuffer() = true
+    open fun initBuffer() = initBuffers(positionData, elementData)
 
-    open fun initBuffers(vertices: FloatArray, elements: ShortArray): Boolean {
+    open fun initBuffers(vertices: ByteBuffer, elements: ShortBuffer): Boolean {
 
-        initArrayBuffer(*vertices)
+        initArrayBuffer(vertices)
 
-        initElementeBuffer(*elements)
+        initElementeBuffer(elements)
 
         return checkError("TestA.initBuffers")
     }
 
-    open fun initArrayBuffer(vararg args: Float) {
-
-        positionData = floatBufferOf(*args)
-
-        vertexCount = args.size
-        positionSize = vertexCount * Float.BYTES
+    open fun initArrayBuffer(vertices: ByteBuffer) {
 
         glBindBuffer(GL_ARRAY_BUFFER, bufferName[Buffer.VERTEX])
         glBufferData(GL_ARRAY_BUFFER, positionData, GL_STATIC_DRAW)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
     }
 
-    open fun initElementeBuffer(vararg args: Short) {
+    open fun initElementeBuffer(elements: ShortBuffer) {
 
-        elementData = shortBufferOf(*args)
-
-        elementCount = args.size
-        elementSize = elementCount * Short.BYTES
+        elementCount = elements.capacity()
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferName[Buffer.ELEMENT])
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, elementData, GL_STATIC_DRAW)
@@ -158,14 +150,15 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
     override fun end(): Boolean {
 
         programName.filter(GL20::glIsProgram).map(GL20::glDeleteProgram)
-        bufferName.filter(GL20::glIsProgram).map(GL20::glDeleteProgram)
+        bufferName.filter(GL15::glIsBuffer).map(GL15::glDeleteBuffers)
+        vertexArrayName.filter(GL30::glIsVertexArray).map(GL30::glDeleteVertexArrays)
+        textureName.filter(GL11::glIsTexture).map(GL11::glDeleteTextures)
+        if(glIsFramebuffer(framebufferName[0])) glDeleteFramebuffers(framebufferName)
 
         if (wasInit { positionData }) positionData.destroy()
         if (wasInit { elementData }) elementData.destroy()
 
-        if (glIsVertexArray(vertexArrayName[0])) glDeleteVertexArrays(vertexArrayName)
-
-        destroyBuf(bufferName, vertexArrayName)
+        destroyBuf(bufferName, vertexArrayName, textureName, framebufferName)
 
         return checkError("TestA.initVertexArray")
     }
