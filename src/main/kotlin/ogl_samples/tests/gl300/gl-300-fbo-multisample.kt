@@ -8,20 +8,24 @@ import gli.Texture2d
 import gli.gl
 import glm_.glm
 import glm_.mat4x4.Mat4
+import glm_.set
+import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec4.Vec4
 import ogl_samples.framework.Compiler
-import ogl_samples.framework.Test
+import ogl_samples.framework.TestB
 import org.lwjgl.opengl.ARBFramebufferObject.*
 import org.lwjgl.opengl.ARBVertexArrayObject.glGenVertexArrays
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL13.*
-import org.lwjgl.opengl.GL15.*
+import org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER
+import org.lwjgl.opengl.GL15.glDeleteBuffers
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.glDeleteVertexArrays
-import uno.buffer.floatBufferOf
+import uno.buffer.bufferOf
 import uno.buffer.intBufferBig
 import uno.caps.Caps.Profile
+import uno.glf.Vertex
 import uno.glf.glf
 import uno.glf.semantic
 import uno.gln.*
@@ -31,58 +35,23 @@ fun main(args: Array<String>) {
     gl_300_fbo_multisample().loop()
 }
 
-private class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Profile.COMPATIBILITY, 3, 0) {
+private class gl_300_fbo_multisample : TestB("gl-300-fbo-multisample", Profile.COMPATIBILITY, 3, 0) {
 
     val SHADER_SOURCE = "gl-300/image-2d"
     val TEXTURE_DIFFUSE = "kueken7_rgba8_srgb.dds"
     val FRAMEBUFFER_SIZE = Vec2i(160, 120)
 
     // With DDS textures, v texture coordinate are reversed, from top to bottom
-    val vertexCount = 6
-    val vertexSize = vertexCount * glf.pos2_tc2.stride
-    val vertexData = floatBufferOf(
-            -2.0f, -1.5f, /**/ 0.0f, 0.0f,
-            +2.0f, -1.5f, /**/ 1.0f, 0.0f,
-            +2.0f, +1.5f, /**/ 1.0f, 1.0f,
-            +2.0f, +1.5f, /**/ 1.0f, 1.0f,
-            -2.0f, +1.5f, /**/ 0.0f, 1.0f,
-            -2.0f, -1.5f, /**/ 0.0f, 0.0f)
+    override var vertexCount = 6
+    override var positionData = bufferOf(
+            Vertex.pos2_tc2(Vec2(-2f, -1.5f), Vec2(0f, 0f)),
+            Vertex.pos2_tc2(Vec2(+2f, -1.5f), Vec2(1f, 0f)),
+            Vertex.pos2_tc2(Vec2(+2f, +1.5f), Vec2(1f, 1f)),
+            Vertex.pos2_tc2(Vec2(+2f, +1.5f), Vec2(1f, 1f)),
+            Vertex.pos2_tc2(Vec2(-2f, +1.5f), Vec2(0f, 1f)),
+            Vertex.pos2_tc2(Vec2(-2f, -1.5f), Vec2(0f, 0f)))
 
-    object Texture {
-        val DIFFUSE = 0
-        val COLOR = 1
-        val MAX = 2
-    }
-
-    var programName = 0
-    val vertexArrayName = intBufferBig(1)
-    val bufferName = intBufferBig(1)
-    val textureName = intBufferBig(1)
-    val colorRenderbufferName = intBufferBig(1)
-    val colorTextureName = intBufferBig(1)
-    val framebufferRenderName = intBufferBig(1)
-    val framebufferResolveName = intBufferBig(1)
-    var uniformMVP = -1
-
-    override fun begin(): Boolean {
-
-        var validated = true
-
-        if (validated)
-            validated = initProgram()
-        if (validated)
-            validated = initBuffer()
-        if (validated)
-            validated = initVertexArray()
-        if (validated)
-            validated = initTexture()
-        if (validated)
-            validated = initFramebuffer()
-
-        return validated && checkError("begin")
-    }
-
-    fun initProgram(): Boolean {
+    override fun initProgram(): Boolean {
 
         var validated = true
 
@@ -93,181 +62,146 @@ private class gl_300_fbo_multisample : Test("gl-300-fbo-multisample", Profile.CO
             val vertShaderName = compiler.create("$SHADER_SOURCE.vert")
             val fragShaderName = compiler.create("$SHADER_SOURCE.frag")
 
-            programName = glCreateProgram()
-            glAttachShader(programName, vertShaderName)
-            glAttachShader(programName, fragShaderName)
+            initProgram(programName) {
 
-            glBindAttribLocation(programName, semantic.attr.POSITION, "Position")
-            glBindAttribLocation(programName, semantic.attr.TEX_COORD, "Texcoord")
-            glLinkProgram(programName)
+                attach(vertShaderName, fragShaderName)
 
-            validated = validated && compiler.check()
-            validated = validated && compiler checkProgram programName
+                "Position".attrib = semantic.attr.POSITION
+                "Texcoord".attrib = semantic.attr.TEX_COORD
+                link()
+
+                validated = validated && compiler.check()
+                validated = validated && compiler checkProgram name
+            }
         }
 
-        if (validated)
-            uniformMVP = glGetUniformLocation(programName, "MVP")
-
-        usingProgram(programName) { "Diffuse".unit = semantic.sampler.DIFFUSE }
+        if (validated) usingProgram(programName) {
+            Uniform.mvp = "MVP".uniform
+            Uniform.diffuse = "Diffuse".unit
+        }
 
         return validated && checkError("initProgram")
     }
 
-    fun initBuffer(): Boolean {
+    override fun initBuffer() = initArrayBuffer(positionData)
 
-        initBuffers(bufferName) {
-            withArray {
-                data(vertexData, GL_STATIC_DRAW)
+    override fun initTexture(): Boolean {
+
+        val texture = Texture2d(gli.loadDDS("$dataDirectory/$TEXTURE_DIFFUSE"))
+
+        initTextures2d(textureName) {
+
+            at(Texture.DIFFUSE) {
+                levels(base = 0, max = texture.levels() - 1)
+                filter(min = linear_mmLinear, mag = linear)
+
+                val format = gl.translate(texture.format, texture.swizzles)
+                for (level in 0 until texture.levels())
+                    glTexImage2D(level, format, texture)
+            }
+            at(Texture.COLOR) {
+                filter(min = nearest, mag = nearest)
+                image(GL_RGBA8, FRAMEBUFFER_SIZE, GL_RGBA, GL_UNSIGNED_BYTE)
             }
         }
-
-        return checkError("initBuffer")
-    }
-
-    fun initTexture(): Boolean {
-
-        val texture = Texture2d(gli.loadDDS(javaClass.getResource("/$dataDirectory/$TEXTURE_DIFFUSE").toURI()))
-        gl.profile = gl.Profile.GL32
-
-        initTexture2d(textureName) {
-
-            levels = 0 until texture.levels()
-            minFilter = linear_mmLinear
-            magFilter = linear
-
-            val format = gl.translate(texture.format, texture.swizzles)
-            for (level in 0 until texture.levels())
-                glTexImage2D(level, format, texture)
-        }
-
-        texture.dispose()
+        texture.dispose()   // TODO rename to destroy
 
         return checkError("initTexture")
     }
 
-    fun initFramebuffer(): Boolean {
+    override fun initRenderbuffer(): Boolean {
 
-        glGenRenderbuffers(colorRenderbufferName)
-        glBindRenderbuffer(GL_RENDERBUFFER, colorRenderbufferName)
-        glRenderbufferStorageMultisample(GL_RENDERBUFFER, 8, GL_RGBA8, FRAMEBUFFER_SIZE)
-        // The second parameter is the number of samples.
+        initRenderbuffer(renderbufferName) {
 
-        glGenFramebuffers(framebufferRenderName)
-        glBindFramebuffer(GL_FRAMEBUFFER, framebufferRenderName)
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, colorRenderbufferName)
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            return false
-        glBindFramebuffer(GL_FRAMEBUFFER)
+            storageMultisample(8, GL_RGBA8, FRAMEBUFFER_SIZE)   // The first parameter is the number of samples.
 
-        glGenTextures(colorTextureName)
-        glBindTexture(GL_TEXTURE_2D, colorTextureName)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0)
+            if (size != FRAMEBUFFER_SIZE || samples != 8 || format != GL_RGBA8)
+                return false
+        }
+        return checkError("initRenderbuffer")
+    }
 
-        glGenFramebuffers(framebufferResolveName)
-        glBindFramebuffer(GL_FRAMEBUFFER, framebufferResolveName)
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTextureName[0], 0)
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            return false
-        glBindFramebuffer(GL_FRAMEBUFFER)
+    override fun initFramebuffer(): Boolean {
 
+        initFramebuffers(framebufferName) {
+
+            at(Framebuffer.RENDER) {
+                renderbuffer(GL_COLOR_ATTACHMENT0, renderbufferName[Renderbuffer.COLOR])
+                if (!complete) return false
+            }
+
+            at(Framebuffer.RESOLVE) {
+                texture2D(GL_COLOR_ATTACHMENT0, textureName[Texture.COLOR])
+                if (!complete) return false
+            }
+        }
         return checkError("initFramebuffer")
     }
 
-    fun initVertexArray(): Boolean {
-
-        glGenVertexArrays(vertexArrayName)
-        glBindVertexArray(vertexArrayName)
-        glBindBuffer(GL_ARRAY_BUFFER, bufferName)
-        glVertexAttribPointer(glf.pos2_tc2[0])
-        glVertexAttribPointer(glf.pos2_tc2[1])
-        glBindBuffer(GL_ARRAY_BUFFER)
-
-        glEnableVertexAttribArray(semantic.attr.POSITION)
-        glEnableVertexAttribArray(semantic.attr.TEX_COORD)
-        glBindVertexArray()
-
-        return checkError("initVertexArray")
-    }
+    override fun initVertexArray() = initVertexArray(glf.pos2_tc2)
 
     override fun render(): Boolean {
 
         // Clear the framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        glClearBuffer(GL_COLOR, Vec4(1.0f, 0.5f, 0.0f, 1.0f))
+        glBindFramebuffer()
+        glClearColorBuffer(1f, 0.5f, 0f, 1f)
 
         glUseProgram(programName)
 
         // Pass 1
         // Render the scene in a multisampled framebuffer
         glEnable(GL_MULTISAMPLE)
-        renderFBO(framebufferRenderName)
+        renderFBO(framebufferName[Framebuffer.RENDER])
         glDisable(GL_MULTISAMPLE)
 
         // Resolved multisampling
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferRenderName)
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebufferResolveName)
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferName[Framebuffer.RENDER])
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebufferName[Framebuffer.RESOLVE])
         glBlitFramebuffer(FRAMEBUFFER_SIZE)
-        glBindFramebuffer(GL_FRAMEBUFFER)
+        glBindFramebuffer()
 
         // Pass 2
         // Render the colorbuffer from the multisampled framebuffer
         glViewport(windowSize)
-        renderFB(colorTextureName)
+        renderFB(textureName[Texture.COLOR])
 
         return true
     }
 
-    fun renderFBO(framebuffer: IntBuffer): Boolean {
+    fun renderFBO(framebuffer: Int): Boolean {
 
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
-        glClearColor(0.0f, 0.5f, 1.0f, 1.0f)
+        glBindFramebuffer(framebuffer)
+        glClearColor(0f, 0.5f, 1f, 1f)
         glClear(GL_COLOR_BUFFER_BIT)
 
-        val perspective = glm.perspective(glm.PIf * 0.25f, FRAMEBUFFER_SIZE, 0.1f, 100.0f)
+        val perspective = glm.perspective(glm.PIf * 0.25f, FRAMEBUFFER_SIZE, 0.1f, 100f)
         val model = Mat4()
         val mvp = perspective * view * model
-        glUniform(uniformMVP, mvp)
+        glUniform(Uniform.mvp, mvp)
 
         glViewport(FRAMEBUFFER_SIZE)
 
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, textureName)
+        withTexture2d(0, textureName[Texture.DIFFUSE]) {
 
-        glBindVertexArray(vertexArrayName)
-        glDrawArrays(vertexCount)
-
+            glBindVertexArray(vertexArrayName)
+            glDrawArrays(vertexCount)
+        }
         return checkError("renderFBO")
     }
 
-    fun renderFB(texture2DName: IntBuffer) {
+    fun renderFB(texture2DName: Int) {
 
-        val perspective = glm.perspective(glm.PIf * 0.25f, windowSize, 0.1f, 100.0f)
+        val perspective = glm.perspective(glm.PIf * 0.25f, windowSize, 0.1f, 100f)
         val model = Mat4()
         val mvp = perspective * view * model
-        glUniform(uniformMVP, mvp)
+        glUniform(Uniform.mvp, mvp)
 
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, texture2DName)
+        withTexture2d(0, textureName[Texture.COLOR]) {
 
-        glBindVertexArray(vertexArrayName)
-        glDrawArrays(vertexCount)
+            glBindVertexArray(vertexArrayName)
+            glDrawArrays(vertexCount)
+        }
 
         checkError("renderFB")
-    }
-
-    override fun end(): Boolean {
-
-        glDeleteBuffers(bufferName)
-        glDeleteProgram(programName)
-        glDeleteTextures(textureName)
-        glDeleteTextures(colorTextureName)
-        glDeleteRenderbuffers(colorRenderbufferName)
-        glDeleteFramebuffers(framebufferRenderName)
-        glDeleteFramebuffers(framebufferResolveName)
-        glDeleteVertexArrays(vertexArrayName)
-
-        return true
     }
 }

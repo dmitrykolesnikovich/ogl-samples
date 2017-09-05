@@ -37,21 +37,35 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
         val MAX = 3
     }
 
+    val bufferName = intBufferBig(Buffer.MAX).also { glGenBuffers(it) }
+
     object Texture {
+
         val COLORBUFFER = 0
         val RENDERBUFFER = 1
+
         val RGBA4 = COLORBUFFER
         val RGBA4_REV = RENDERBUFFER
         val BGRA4 = 2
         val BGRA4_REV = 3
+
+        val DIFFUSE = COLORBUFFER
+        val COLOR = RENDERBUFFER
+
         val MAX = 4
     }
+
+    val textureName = intBufferBig(Texture.MAX)
 
     object Program {
         val RENDER = 0
         val SPLASH = 1
         val MAX = 2
+
     }
+
+    var programName = IntArray(Program.MAX)
+    val vertexArrayName = intBufferBig(Program.MAX)
 
     object Shader {
         val VERT_RENDER = 0
@@ -59,25 +73,31 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
         val VERT_SPLASH = 2
         val FRAG_SPLASH = 3
         val MAX = 4
+
     }
 
-    val bufferName = intBufferBig(Buffer.MAX).also { glGenBuffers(it) }
-
-    var programName = IntArray(Program.MAX)
-
-    val textureName = intBufferBig(Texture.MAX)
-
-    object Uniform {
-        var mvp = 0
-        var diffuse = 0
-        var transform = 0
+    object Renderbuffer {
+        val COLOR = 0
+        val MAX = 1
     }
 
-    val framebufferName = intBufferBig(1)
+    val renderbufferName = intBufferBig(Renderbuffer.MAX)
 
+    object Framebuffer {
+        val RENDER = 0
+        val RESOLVE = 1
+        val MAX = 2
+
+    }
+
+    val framebufferName = intBufferBig(Framebuffer.MAX)
     val framebufferScale = 2
 
-    val vertexArrayName = intBufferBig(Program.MAX)
+    object Uniform {
+        var mvp = -1
+        var diffuse = -1
+        var transform = -1
+    }
 
     override fun begin(): Boolean {
 
@@ -92,10 +112,13 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
         if (validated)
             validated = initVertexArray()
 
-        if(validated)
+        if (validated)
             validated = initTexture()
 
-        if(validated)
+        if (validated)
+            validated = initRenderbuffer()
+
+        if (validated)
             validated = initFramebuffer()
 
         return validated
@@ -120,7 +143,7 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-        return true
+        return checkError("TestA.initArrayBuffer")
     }
 
     open fun initElementeBuffer(elements: ShortBuffer) {
@@ -144,6 +167,7 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
     }
 
     open fun initTexture() = true
+    open fun initRenderbuffer() = true
     open fun initFramebuffer() = true
 
     override abstract fun render(): Boolean
@@ -154,7 +178,7 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
         bufferName.filter(GL15::glIsBuffer).map(GL15::glDeleteBuffers)
         vertexArrayName.filter(GL30::glIsVertexArray).map(GL30::glDeleteVertexArrays)
         textureName.filter(GL11::glIsTexture).map(GL11::glDeleteTextures)
-        if(glIsFramebuffer(framebufferName[0])) glDeleteFramebuffers(framebufferName)
+        if (glIsFramebuffer(framebufferName[0])) glDeleteFramebuffers(framebufferName)
 
         if (wasInit { positionData }) positionData.destroy()
         if (wasInit { elementData }) elementData.destroy()

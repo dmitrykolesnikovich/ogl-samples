@@ -11,14 +11,9 @@ import glm_.vec4.Vec4i
 import ogl_samples.framework.Compiler
 import ogl_samples.framework.TestB
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL12.*
+import org.lwjgl.opengl.GL12.GL_UNSIGNED_SHORT_4_4_4_4
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL13.glActiveTexture
-import org.lwjgl.opengl.GL15.*
-import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL30.glBindVertexArray
-import org.lwjgl.opengl.GL30.glGenVertexArrays
-import org.lwjgl.opengl.GL33.*
 import uno.buffer.bufferBig
 import uno.buffer.bufferOf
 import uno.caps.Caps.Profile
@@ -60,7 +55,7 @@ private class es_300_texture_format_packed : TestB("es-300-texture-format-packed
         val fragShaderName = compiler.create("$SHADER_SOURCE.frag")
         validated = validated && compiler.check()
 
-        programName[0] = glCreateProgram {
+        initProgram(programName) {
 
             attach(vertShaderName, fragShaderName)
 
@@ -118,7 +113,7 @@ private class es_300_texture_format_packed : TestB("es-300-texture-format-packed
         return checkError("initTexture")
     }
 
-    override fun initVertexArray() = initVertexArray(glf.pos2_tc2).run { checkError("Va") }
+    override fun initVertexArray() = initVertexArray(glf.pos2_tc2)
 
     override fun render(): Boolean {
 
@@ -126,7 +121,7 @@ private class es_300_texture_format_packed : TestB("es-300-texture-format-packed
         val model = glm.scale(Mat4(), Vec3(3f))
         val mvp = projection * view * model
 
-        usingProgram(programName[0]) {
+        usingProgram(programName) {
 
             glUniform(Uniform.diffuse, semantic.sampler.DIFFUSE)
             glUniform(Uniform.mvp, mvp)

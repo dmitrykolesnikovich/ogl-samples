@@ -149,7 +149,7 @@ private class es_200_fbo_shadow : Test("es-200-fbo-shadow", Caps.Profile.ES, 2, 
             shaderName[Shader.FRAG_DEPTH] = compiler.create(FRAG_SHADER_SOURCE_DEPTH)
             validated = validated && compiler.check()
 
-            programName[Framebuffer.DEPTH] = glCreateProgram {
+            programName[Framebuffer.DEPTH] = initProgram {
                 attach(shaderName[Shader.VERT_DEPTH], shaderName[Shader.FRAG_DEPTH])
                 "Position".attrib = semantic.attr.POSITION
                 link()
@@ -175,7 +175,7 @@ private class es_200_fbo_shadow : Test("es-200-fbo-shadow", Caps.Profile.ES, 2, 
             shaderName[Shader.FRAG_RENDER] = compiler.create(FRAG_SHADER_SOURCE_RENDER)
             validated = validated && compiler.check()
 
-            programName[Framebuffer.RENDER] = glCreateProgram {
+            programName[Framebuffer.RENDER] = initProgram {
                 attach(shaderName[Shader.VERT_RENDER], shaderName[Shader.FRAG_RENDER])
                 "Position".attrib = semantic.attr.POSITION
                 "Color".attrib = semantic.attr.COLOR

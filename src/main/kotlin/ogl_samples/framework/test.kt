@@ -19,7 +19,6 @@ import uno.caps.Caps.Profile
 import uno.glfw.GlfwWindow
 import uno.glfw.glfw
 import uno.gln.checkError
-import java.nio.IntBuffer
 
 
 /**
@@ -55,47 +54,42 @@ abstract class Test(
             visible = true
             srgb = false
             decorated = true
-            api = if (this@Test.profile == Profile.ES) "es" else "gl"
+            val t = this@Test
+            api = if (t.profile == Profile.ES) "es" else "gl"
 
-            if (version(this@Test.major, this@Test.minor) >= version(3, 2) || this@Test.profile == Profile.ES) {
-                context.version = "${this@Test.major}.${this@Test.minor}"
+            if (version(t.major, t.minor) >= version(3, 2) || t.profile == Profile.ES) {
+                context.version = "${t.major}.${t.minor}"
                 if (APPLE) {
                     profile = "core"
                     forwardComp = true
-                } else {
-                    if (this@Test.profile != Profile.ES) {
-                        profile = if (this@Test.profile == Profile.CORE) "core" else "compat"
-                        forwardComp = this@Test.profile == Profile.CORE
-                    }
-                    debug = DEBUG
                 }
+                if (t.profile != Profile.ES) {
+                    profile = if (t.profile == Profile.CORE) "core" else "compat"
+                    forwardComp = t.profile == Profile.CORE
+                }
+                debug = DEBUG
             }
         }
     }
 
-    val window: GlfwWindow
+    val window = run {
+        val dpi = if (APPLE) 2 else 1
+        GlfwWindow(windowSize / dpi, title)
+    }
 
     init {
 
-        val dpi = if (APPLE) 2 else 1
-        window = GlfwWindow(windowSize / dpi, title)
+        if (window.handle != 0L) with(window) {
 
-        if (window.handle != 0L)
+            pos = Vec2i(64)
 
-            with(window) {
+            glfwSetMouseButtonCallback(handle, MouseListener())
+            glfwSetKeyCallback(handle, KeyListener_())
 
-                pos = Vec2i(64)
-
-
-                glfwSetMouseButtonCallback(handle, MouseListener())
-                glfwSetKeyCallback(handle, KeyListener_())
-            }
-
-        glfwMakeContextCurrent(window.handle)
-
-        GL.createCapabilities()
-        uno.gln.checkError("program")
-        glfwShowWindow(window.handle)
+            makeContextCurrent()
+            GL.createCapabilities()
+            show()
+        }
     }
 
     constructor(title: String, profile: Profile, major: Int, minor: Int,
