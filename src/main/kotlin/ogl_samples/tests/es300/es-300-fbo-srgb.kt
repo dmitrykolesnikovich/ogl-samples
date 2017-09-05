@@ -99,9 +99,9 @@ private class es_300_fbo_srgb : TestB("es-300-fbo-srgb", Profile.ES, 3, 0) {
 
         val vertices = generateIcosahedron(4)
         vertexCount = vertices.size * Vec3.length
-        positionData = bufferOf(vertices)
+        vertexData = bufferOf(vertices)
 
-        initArrayBuffer(positionData)
+        initArrayBuffer(vertexData)
 
         val uniformBlockSize = glm.max(Mat4.size, caps.limits.UNIFORM_BUFFER_OFFSET_ALIGNMENT)
         withUniformBuffer(bufferName[Buffer.TRANSFORM]) { data(uniformBlockSize, GL_STATIC_DRAW) }

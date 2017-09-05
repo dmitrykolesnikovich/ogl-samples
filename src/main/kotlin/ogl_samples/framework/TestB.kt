@@ -1,24 +1,19 @@
 package ogl_samples.framework
 
 import gli.wasInit
-import glm_.BYTES
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL20.glDeleteProgram
-import org.lwjgl.opengl.GL20.glIsProgram
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.*
 import uno.caps.Caps
 import uno.glf.VertexLayout
-import uno.glf.glf
 import uno.gln.checkError
 import uno.gln.initVertexArray
 import uno.kotlin.buffers.filter
 import java.nio.ByteBuffer
-import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
 
@@ -28,7 +23,7 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
     open lateinit var elementData: ShortBuffer
 
     open var vertexCount = 0
-    open lateinit var positionData: ByteBuffer
+    open lateinit var vertexData: ByteBuffer
 
     object Buffer {
         val VERTEX = 0
@@ -104,6 +99,9 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
         var validated = true
 
         if (validated)
+            validated = initTest()
+
+        if (validated)
             validated = initProgram()
 
         if (validated)
@@ -124,9 +122,10 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
         return validated
     }
 
+    open fun initTest() = true
     open fun initProgram() = true
 
-    open fun initBuffer() = initBuffers(positionData, elementData)
+    open fun initBuffer() = initBuffers(vertexData, elementData)
 
     open fun initBuffers(vertices: ByteBuffer, elements: ShortBuffer): Boolean {
 
@@ -178,12 +177,13 @@ abstract class TestB(title: String, profile: Caps.Profile, major: Int, minor: In
         bufferName.filter(GL15::glIsBuffer).map(GL15::glDeleteBuffers)
         vertexArrayName.filter(GL30::glIsVertexArray).map(GL30::glDeleteVertexArrays)
         textureName.filter(GL11::glIsTexture).map(GL11::glDeleteTextures)
-        if (glIsFramebuffer(framebufferName[0])) glDeleteFramebuffers(framebufferName)
+        framebufferName.filter(GL30::glIsFramebuffer).map(GL30::glDeleteFramebuffers)
+        renderbufferName.filter(GL30::glIsRenderbuffer).map(GL30::glDeleteRenderbuffers)
 
-        if (wasInit { positionData }) positionData.destroy()
+        if (wasInit { vertexData }) vertexData.destroy()
         if (wasInit { elementData }) elementData.destroy()
 
-        destroyBuf(bufferName, vertexArrayName, textureName, framebufferName)
+        destroyBuf(bufferName, vertexArrayName, textureName, framebufferName, renderbufferName)
 
         return checkError("TestA.initVertexArray")
     }

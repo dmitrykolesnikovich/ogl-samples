@@ -8,28 +8,19 @@ import gli.Texture2d
 import gli.gl
 import glm_.glm
 import glm_.mat4x4.Mat4
-import glm_.set
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
-import glm_.vec4.Vec4
 import ogl_samples.framework.Compiler
 import ogl_samples.framework.TestB
 import org.lwjgl.opengl.ARBFramebufferObject.*
-import org.lwjgl.opengl.ARBVertexArrayObject.glGenVertexArrays
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL13.*
-import org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER
-import org.lwjgl.opengl.GL15.glDeleteBuffers
-import org.lwjgl.opengl.GL20.*
-import org.lwjgl.opengl.GL30.glDeleteVertexArrays
 import uno.buffer.bufferOf
-import uno.buffer.intBufferBig
 import uno.caps.Caps.Profile
 import uno.glf.Vertex
 import uno.glf.glf
 import uno.glf.semantic
 import uno.gln.*
-import java.nio.IntBuffer
 
 fun main(args: Array<String>) {
     gl_300_fbo_multisample().loop()
@@ -43,7 +34,7 @@ private class gl_300_fbo_multisample : TestB("gl-300-fbo-multisample", Profile.C
 
     // With DDS textures, v texture coordinate are reversed, from top to bottom
     override var vertexCount = 6
-    override var positionData = bufferOf(
+    override var vertexData = bufferOf(
             Vertex.pos2_tc2(Vec2(-2f, -1.5f), Vec2(0f, 0f)),
             Vertex.pos2_tc2(Vec2(+2f, -1.5f), Vec2(1f, 0f)),
             Vertex.pos2_tc2(Vec2(+2f, +1.5f), Vec2(1f, 1f)),
@@ -83,11 +74,12 @@ private class gl_300_fbo_multisample : TestB("gl-300-fbo-multisample", Profile.C
         return validated && checkError("initProgram")
     }
 
-    override fun initBuffer() = initArrayBuffer(positionData)
+    override fun initBuffer() = initArrayBuffer(vertexData)
 
     override fun initTexture(): Boolean {
 
         val texture = Texture2d(gli.loadDDS("$dataDirectory/$TEXTURE_DIFFUSE"))
+        gli.gl.profile = gl.Profile.GL32
 
         initTextures2d(textureName) {
 
@@ -111,12 +103,12 @@ private class gl_300_fbo_multisample : TestB("gl-300-fbo-multisample", Profile.C
 
     override fun initRenderbuffer(): Boolean {
 
-        initRenderbuffer(renderbufferName) {
-
-            storageMultisample(8, GL_RGBA8, FRAMEBUFFER_SIZE)   // The first parameter is the number of samples.
-
-            if (size != FRAMEBUFFER_SIZE || samples != 8 || format != GL_RGBA8)
-                return false
+        initRenderbuffers(renderbufferName) {
+            at(Renderbuffer.COLOR) {
+                storageMultisample(8, GL_RGBA8, FRAMEBUFFER_SIZE)   // The first parameter is the number of samples.
+                if (size != FRAMEBUFFER_SIZE || samples != 8 || format != GL_RGBA8)
+                    return false
+            }
         }
         return checkError("initRenderbuffer")
     }

@@ -35,7 +35,7 @@ private class es_300_texture_format_packed : TestB("es-300-texture-format-packed
     val SHADER_SOURCE = "es-300/texture-format-packed"
 
     override var vertexCount = 8
-    override var positionData = bufferOf(
+    override var vertexData = bufferOf(
             Vertex.pos2_tc2(Vec2(-1f, -1f), Vec2(0f, 0f)),
             Vertex.pos2_tc2(Vec2(-1f, 3f), Vec2(0f, 1f)),
             Vertex.pos2_tc2(Vec2(3f, -1f), Vec2(1f, 0f)))
@@ -73,7 +73,7 @@ private class es_300_texture_format_packed : TestB("es-300-texture-format-packed
         return validated && checkError("initProgram")
     }
 
-    override fun initBuffer() = initArrayBuffer(positionData)
+    override fun initBuffer() = initArrayBuffer(vertexData)
 
     override fun initTexture(): Boolean {
 
