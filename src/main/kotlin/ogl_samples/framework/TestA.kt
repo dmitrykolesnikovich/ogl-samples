@@ -1,6 +1,7 @@
 package ogl_samples.framework
 
 import gli.wasInit
+import glm_.vec2.Vec2
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL15.*
@@ -19,7 +20,9 @@ import java.nio.IntBuffer
 import java.nio.ShortBuffer
 
 
-abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: Int) : Test(title, profile, major, minor) {
+abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: Int, orientation: Vec2 = Vec2()) :
+        Test(title, profile, major, minor, orientation) {
+
 
     var elementCount = 0
     open lateinit var elementData: ShortBuffer
@@ -31,6 +34,7 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
     operator fun IntBuffer.get(e: Enum<*>) = get(e.ordinal)
     operator fun IntArray.get(e: Enum<*>) = get(e.ordinal)
     operator fun IntArray.set(e: Enum<*>, int: Int) = set(e.ordinal, int)
+    inline fun <reified T : Enum<T>> intArrayBig() = IntArray(enumValues<T>().size)
 
 
     enum class Buffer { VERTEX, ELEMENT, TRANSFORM }
@@ -38,12 +42,14 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
     val bufferName = intBufferBig<Buffer>().also { glGenBuffers(it) }
 
 
-    enum class Texture { COLORBUFFER, RENDERBUFFER, RGBA4, RGBA4_REV, BGRA4, BGRA4_REV, DIFFUSE, COLOR }
+    enum class Texture { COLORBUFFER, RENDERBUFFER, DEPTHBUFFER, RGBA4, RGBA4_REV, BGRA4, BGRA4_REV, DIFFUSE, COLOR, DEPTH, RENDER,
+        SHADOWMAP
+    }
 
     val textureName = intBufferBig<Texture>()
 
 
-    enum class Program { RENDER, SPLASH }
+    enum class Program { RENDER, SPLASH, DEPTH }
 
     var programName = IntArray(Program.values().size)
 
@@ -53,23 +59,46 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
     val vertexArrayName = intBufferBig<VertexArray>()
 
 
-    enum class Shader { VERT_RENDER, FRAG_RENDER, VERT_SPLASH, FRAG_SPLASH }
+    enum class Shader { VERT_RENDER, FRAG_RENDER, VERT_SPLASH, FRAG_SPLASH, VERT_DEPTH, FRAG_DEPTH }
 
 
-    enum class Renderbuffer { COLOR }
+    enum class Renderbuffer { COLOR, COLORBUFFER, DEPTHBUFFER, DEPTH, RENDER }
 
     val renderbufferName = intBufferBig<Renderbuffer>()
 
 
-    enum class Framebuffer { RENDER, RESOLVE }
+    enum class Framebuffer { FRAMEBUFFER, RENDER, RESOLVE, DEPTH, SHADOW }
 
     val framebufferName = intBufferBig<Framebuffer>()
     val framebufferScale = 2
 
     object Uniform {
+
         var mvp = -1
         var diffuse = -1
         var transform = -1
+
+        var depthMVP = -1
+
+        object Light {
+            var proj = -1
+            var view = -1
+            var world = -1
+            var pointLightPosition = -1
+            var clipNearFar = -1
+        }
+
+        object Render {
+            var p = -1
+            var v = -1
+            var w = -1
+            var shadow = -1
+            var pointLightPosition = -1
+            var clipNearFar = -1
+            var bias = -1
+            var mvp = -1
+            var depthBiasMVP = -1
+        }
     }
 
     override fun begin(): Boolean {

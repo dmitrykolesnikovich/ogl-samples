@@ -1,6 +1,5 @@
 package ogl_samples.tests.es300
 
-import glm_.BYTES
 import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -8,7 +7,7 @@ import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4ub
 import ogl_samples.framework.Compiler
-import ogl_samples.framework.Test
+import ogl_samples.framework.TestA
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL14.GL_DEPTH_COMPONENT24
 import org.lwjgl.opengl.GL15.GL_STATIC_DRAW
@@ -30,15 +29,15 @@ fun main(args: Array<String>) {
     es_300_fbo_shadow().loop()
 }
 
-private class es_300_fbo_shadow : Test("es-300-fbo-shadow", Caps.Profile.ES, 3, 0, Vec2(0f, -glm.PIf * 0.3f)) {
+private class es_300_fbo_shadow : TestA("es-300-fbo-shadow", Caps.Profile.ES, 3, 0, Vec2(0f, -glm.PIf * 0.3f)) {
 
     val VERT_SHADER_SOURCE_DEPTH = "es-300/fbo-shadow-depth.vert"
     val FRAG_SHADER_SOURCE_DEPTH = "es-300/fbo-shadow-depth.frag"
     val VERT_SHADER_SOURCE_RENDER = "es-300/fbo-shadow-render.vert"
     val FRAG_SHADER_SOURCE_RENDER = "es-300/fbo-shadow-render.frag"
 
-    val vertexCount = 8
-    val vertexData = bufferOf(
+    override var vertexCount = 8
+    override var vertexData = bufferOf(
             Vertex.pos3_col4ub(Vec3(-1.0f, -1.0f, 0.0f), Vec4ub(255, 127, 0, 255)),
             Vertex.pos3_col4ub(Vec3(+1.0f, -1.0f, 0.0f), Vec4ub(255, 127, 0, 255)),
             Vertex.pos3_col4ub(Vec3(+1.0f, +1.0f, 0.0f), Vec4ub(255, 127, 0, 255)),
@@ -48,88 +47,19 @@ private class es_300_fbo_shadow : Test("es-300-fbo-shadow", Caps.Profile.ES, 3, 
             Vertex.pos3_col4ub(Vec3(+0.1f, +0.1f, 0.2f), Vec4ub(0, 127, 255, 255)),
             Vertex.pos3_col4ub(Vec3(-0.1f, +0.1f, 0.2f), Vec4ub(0, 127, 255, 255)))
 
-    val elementCount = 12
-    val elementData = shortBufferOf(
+    override var elementData = shortBufferOf(
             0, 1, 2,
             2, 3, 0,
             4, 5, 6,
             6, 7, 4)
 
-    object Buffer {
-        val VERTEX = 0
-        val ELEMENT = 1
-        val MAX = 2
-    }
-
-    object Texture {
-        val COLORBUFFER = 0
-        val DEPTHBUFFER = 1
-        val SHADOWMAP = 2
-        val MAX = 3
-    }
-
-    object Program {
-        val DEPTH = 0
-        val RENDER = 1
-        val MAX = 2
-    }
-
-    object Framebuffer {
-        val FRAMEBUFFER = 0
-        val SHADOW = 1
-        val MAX = 2
-    }
-
-    object Shader {
-        val VERT_RENDER = 0
-        val FRAG_RENDER = 1
-        val VERT_DEPTH = 2
-        val FRAG_DEPTH = 3
-        val MAX = 4
-    }
-
     val shadowSize = Vec2i(64)
 
-    val framebufferName = intBufferBig(Framebuffer.MAX)
-    val programName = IntArray(Program.MAX)
-    val vertexArrayName = intBufferBig(Program.MAX)
-    val bufferName = intBufferBig(Buffer.MAX)
-    val textureName = intBufferBig(Texture.MAX)
-
-    object Uniform {
-
-        var depthMVP = -1
-
-        object Render {
-            var mvp = -1
-            var depthBiasMVP = -1
-            var shadow = -1
-        }
-    }
-
-    override fun begin(): Boolean {
+    override fun initProgram(): Boolean {
 
         var validated = true
 
-        if (validated)
-            validated = initProgram()
-        if (validated)
-            validated = initBuffer()
-        if (validated)
-            validated = initVertexArray()
-        if (validated)
-            validated = initTexture()
-        if (validated)
-            validated = initFramebuffer()
-
-        return validated && checkError("begin")
-    }
-
-    fun initProgram(): Boolean {
-
-        var validated = true
-
-        val shaderName = IntArray(Shader.MAX)
+        val shaderName = intArrayBig<Shader>()
 
         if (validated) {
             val compiler = Compiler()
@@ -177,18 +107,9 @@ private class es_300_fbo_shadow : Test("es-300-fbo-shadow", Caps.Profile.ES, 3, 
         return validated
     }
 
-    fun initBuffer(): Boolean {
+    override fun initBuffer() = initBuffers(vertexData, elementData)
 
-        initBuffers(bufferName) {
-
-            withElementAt(Buffer.ELEMENT) { data(elementData, GL_STATIC_DRAW) }
-
-            withArrayAt(Buffer.VERTEX) { data(vertexData, GL_STATIC_DRAW) }
-        }
-        return true
-    }
-
-    fun initTexture(): Boolean {
+    override fun initTexture(): Boolean {
 
         initTextures2d(textureName) {
 
@@ -211,11 +132,11 @@ private class es_300_fbo_shadow : Test("es-300-fbo-shadow", Caps.Profile.ES, 3, 
         return true
     }
 
-    fun initVertexArray(): Boolean {
+    override fun initVertexArray(): Boolean {
 
         initVertexArrays(vertexArrayName) {
 
-            at(Program.RENDER) {
+            at(VertexArray.RENDER) {
 
                 withArrayBuffer(bufferName[Buffer.VERTEX]) {
                     glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, glf.pos3_col4ub.stride, 0)
@@ -232,7 +153,7 @@ private class es_300_fbo_shadow : Test("es-300-fbo-shadow", Caps.Profile.ES, 3, 
         return true
     }
 
-    fun initFramebuffer(): Boolean {
+    override fun initFramebuffer(): Boolean {
 
         initFramebuffers(framebufferName) {
 
@@ -299,7 +220,7 @@ private class es_300_fbo_shadow : Test("es-300-fbo-shadow", Caps.Profile.ES, 3, 
         glBindFramebuffer(GL_FRAMEBUFFER, framebufferName[Framebuffer.SHADOW])
         glClearDepthBuffer(1f)
 
-        glBindVertexArray(vertexArrayName[Program.RENDER])
+        glBindVertexArray(vertexArrayName[VertexArray.RENDER])
         glDrawElements(elementCount, GL_UNSIGNED_SHORT)
 
         glDisable(GL_DEPTH_TEST)
@@ -320,7 +241,7 @@ private class es_300_fbo_shadow : Test("es-300-fbo-shadow", Caps.Profile.ES, 3, 
 
         withTexture2d(0, textureName[Texture.SHADOWMAP]) {
 
-            glBindVertexArray(vertexArrayName[Program.RENDER])
+            glBindVertexArray(vertexArrayName[VertexArray.RENDER])
             glDrawElements(elementCount, GL_UNSIGNED_SHORT)
         }
 
@@ -328,19 +249,4 @@ private class es_300_fbo_shadow : Test("es-300-fbo-shadow", Caps.Profile.ES, 3, 
 
         checkError("renderFramebuffer")
     }
-
-
-    override fun end(): Boolean {
-
-        glDeletePrograms(programName)
-        glDeleteFramebuffers(framebufferName)
-        glDeleteVertexArrays(vertexArrayName)
-        glDeleteBuffers(bufferName)
-        glDeleteTextures(textureName)
-
-        destroyBuf(framebufferName, bufferName, textureName, vertexData, elementData)
-
-        return checkError("end")
-    }
-
 }
