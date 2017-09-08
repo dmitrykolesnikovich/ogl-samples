@@ -59,7 +59,7 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
     val vertexArrayName = intBufferBig<VertexArray>()
 
 
-    enum class Shader { VERT_RENDER, FRAG_RENDER, VERT_SPLASH, FRAG_SPLASH, VERT_DEPTH, FRAG_DEPTH }
+    enum class Shader { VERT, FRAG, VERT_RENDER, FRAG_RENDER, VERT_SPLASH, FRAG_SPLASH, VERT_DEPTH, FRAG_DEPTH }
 
 
     enum class Renderbuffer { COLOR, COLORBUFFER, DEPTHBUFFER, DEPTH, RENDER }
