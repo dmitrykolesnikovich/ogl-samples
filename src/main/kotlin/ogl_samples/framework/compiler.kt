@@ -52,6 +52,7 @@ class Compiler {
         return File(url.toURI()).readText() + "\n"
     }
 
+    infix fun checkProgram(programName: IntArray) = checkProgram(programName[0])
     infix fun checkProgram(programName: Int): Boolean {
 
         if (programName == 0) return false

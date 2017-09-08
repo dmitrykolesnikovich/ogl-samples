@@ -8,7 +8,7 @@ import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
 import ogl_samples.framework.Compiler
-import ogl_samples.framework.TestB
+import ogl_samples.framework.TestA
 import org.lwjgl.opengl.ARBFramebufferObject.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.ARBFramebufferObject.GL_DEPTH_ATTACHMENT
 import org.lwjgl.opengl.ARBMapBufferRange.GL_MAP_INVALIDATE_BUFFER_BIT
@@ -37,7 +37,7 @@ fun main(args: Array<String>) {
     es_300_fbo_srgb().loop()
 }
 
-private class es_300_fbo_srgb : TestB("es-300-fbo-srgb", Profile.ES, 3, 0) {
+private class es_300_fbo_srgb : TestA("es-300-fbo-srgb", Profile.ES, 3, 0) {
 
     val SHADER_SOURCE_RENDER = "es-300/fbo-srgb"
     val SHADER_SOURCE_SPLASH = "es-300/fbo-srgb-blit"
@@ -53,7 +53,7 @@ private class es_300_fbo_srgb : TestB("es-300-fbo-srgb", Profile.ES, 3, 0) {
 
         val compiler = Compiler()
 
-        val shaderName = IntArray(Shader.MAX)
+        val shaderName = IntArray(Shader.values().size)
 
         initPrograms(programName) {
 

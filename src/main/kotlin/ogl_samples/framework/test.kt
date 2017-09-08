@@ -1,5 +1,6 @@
 package ogl_samples.framework
 
+import gli.Texture2d
 import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
@@ -19,6 +20,7 @@ import uno.caps.Caps.Profile
 import uno.glfw.GlfwWindow
 import uno.glfw.glfw
 import uno.gln.checkError
+import uno.gln.glBindFramebuffer
 
 
 /**
@@ -29,7 +31,7 @@ val DEBUG = true
 val APPLE = Platform.get() == Platform.MACOSX
 val EXIT_SUCCESS = false
 val EXIT_FAILURE = true
-val AUTOMATED_TESTS = false
+var AUTOMATED_TESTS = false
 
 abstract class Test(
         val title: String,
@@ -83,8 +85,8 @@ abstract class Test(
 
             pos = Vec2i(64)
 
-            glfwSetMouseButtonCallback(handle, MouseListener())
-            glfwSetKeyCallback(handle, KeyListener_())
+            glfwSetMouseButtonCallback(handle, MouseButtonCallback())
+            glfwSetKeyCallback(handle, KeyCallback())
 
             makeContextCurrent()
             GL.createCapabilities()
@@ -172,7 +174,6 @@ abstract class Test(
                 }
                 break
             }
-
             swap()
 
             if (AUTOMATED_TESTS) --frameNum
@@ -191,8 +192,28 @@ abstract class Test(
 
     fun checkTemplate(pWindow: Long, title: String): Boolean {
 
-        val coloryType = if (profile == Profile.ES) glGetInteger(GL_IMPLEMENTATION_COLOR_READ_TYPE) else GL_UNSIGNED_BYTE
-        val coloryFormat = if (profile == Profile.ES) glGetInteger(GL_IMPLEMENTATION_COLOR_READ_FORMAT) else GL_RGBA
+        val colorType = if (profile == Profile.ES) glGetInteger(GL_IMPLEMENTATION_COLOR_READ_TYPE) else GL_UNSIGNED_BYTE
+        val colorFormat = if (profile == Profile.ES) glGetInteger(GL_IMPLEMENTATION_COLOR_READ_FORMAT) else GL_RGBA
+
+        val windowSize = window.framebufferSize
+
+        val textureRead = Texture2d(if (colorFormat == GL_RGBA) gli.Format.RGBA8_UNORM_PACK8 else gli.Format.RGB8_UNORM_PACK8, windowSize, 1)
+        val textureRGB = Texture2d(gli.Format.RGB8_UNORM_PACK8, windowSize, 1)
+
+        glBindFramebuffer()
+        glReadPixels(0, 0, windowSize.x, windowSize.y, colorFormat, colorType,
+                if (textureRead.format == gli.Format.RGBA8_UNORM_PACK8) textureRead.data() else textureRGB.data())
+
+        if (textureRead.format == gli.Format.RGBA8_UNORM_PACK8) {
+            for (y in 0 until textureRGB.extent().y)
+                for (x in 0 until textureRGB.extent().x) {
+
+                    val texelCoord = Vec2i(x, y)
+
+//                    val color = textureRead.load < glm::u8vec4 > (texelCoord, 0)
+//                    textureRGB.store(texelCoord, 0, color)
+                }
+        }
 
         return true // TODO
     }
@@ -252,7 +273,7 @@ abstract class Test(
         return version(majorVersionContext, minorVersionContext) >= version(majorVersionContext, minorVersionContext)
     }
 
-    inner class MouseListener : GLFWMouseButtonCallbackI {
+    inner class MouseButtonCallback : GLFWMouseButtonCallbackI {
         override fun invoke(window: Long, button: Int, action: Int, mods: Int) {
             when (action) {
                 GLFW_PRESS -> {
@@ -284,7 +305,7 @@ abstract class Test(
         }
     }
 
-    inner class KeyListener_ : GLFWKeyCallbackI {
+    inner class KeyCallback : GLFWKeyCallbackI {
         override fun invoke(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {
             if (key < 0) return
 

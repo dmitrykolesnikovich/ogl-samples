@@ -29,7 +29,7 @@ private class es_300_draw_elements : TestA("es-300-draw-elements", Profile.ES, 3
     val FRAGMENT_SHADER_SOURCE_FAIL = "es-300/flat-color-fail.frag"
 
     override var vertexCount = 4
-    override var positionData = bufferOf(
+    override var vertexData = bufferOf(
             Vec2(-1f, -1f),
             Vec2(+1f, -1f),
             Vec2(+1f, +1f),
@@ -67,7 +67,7 @@ private class es_300_draw_elements : TestA("es-300-draw-elements", Profile.ES, 3
 
             val compiler = Compiler()
 
-            programName = compiler.create("$SHADER_SOURCE.vert", "$SHADER_SOURCE.frag")
+            programName[0] = compiler.create("$SHADER_SOURCE.vert", "$SHADER_SOURCE.frag")
 
             withProgram(programName) {
                 "Position".attrib = semantic.attr.POSITION
@@ -80,11 +80,11 @@ private class es_300_draw_elements : TestA("es-300-draw-elements", Profile.ES, 3
 
         // Get variables locations
         if (validated)
-            uniformMVP = glGetUniformLocation(programName, "MVP")
+            usingProgram(programName) { Uniform.mvp = "MVP".uniform }
 
         // Set some variables
         if (validated)
-            usingProgram(programName) { Vec4(1.0f, 0.5f, 0.0f, 1.0f) to "Diffuse" }
+            usingProgram(programName) { Vec4(1f, 0.5f, 0f, 1f) to "Diffuse" }
 
         return validated && checkError("initProgram")
     }
@@ -112,7 +112,7 @@ private class es_300_draw_elements : TestA("es-300-draw-elements", Profile.ES, 3
         glUseProgram(programName)
 
         // Set the value of MVP uniform.
-        glUniform(uniformMVP, mvp)
+        glUniform(Uniform.mvp, mvp)
 
         glBindVertexArray(vertexArrayName)
 

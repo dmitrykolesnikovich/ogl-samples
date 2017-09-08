@@ -9,7 +9,7 @@ import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4i
 import ogl_samples.framework.Compiler
-import ogl_samples.framework.TestB
+import ogl_samples.framework.TestA
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL12.GL_UNSIGNED_SHORT_4_4_4_4
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
@@ -30,7 +30,7 @@ fun main(args: Array<String>) {
     es_300_texture_format_packed().loop()
 }
 
-private class es_300_texture_format_packed : TestB("es-300-texture-format-packed", Profile.ES, 3, 0) {
+private class es_300_texture_format_packed : TestA("es-300-texture-format-packed", Profile.ES, 3, 0) {
 
     val SHADER_SOURCE = "es-300/texture-format-packed"
 

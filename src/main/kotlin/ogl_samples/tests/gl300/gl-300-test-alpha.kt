@@ -11,7 +11,7 @@ import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import ogl_samples.framework.Compiler
-import ogl_samples.framework.TestB
+import ogl_samples.framework.TestA
 import org.lwjgl.opengl.GL11.*
 import uno.buffer.bufferOf
 import uno.caps.Caps.Profile
@@ -24,7 +24,7 @@ fun main(args: Array<String>) {
     gl_300_test_alpha().loop()
 }
 
-private class gl_300_test_alpha : TestB("gl-300-test-alpha", Profile.COMPATIBILITY, 3, 0) {
+private class gl_300_test_alpha : TestA("gl-300-test-alpha", Profile.COMPATIBILITY, 3, 0) {
 
     val SHADER_SOURCE = "gl-300/image-2d"
     val TEXTURE_DIFFUSE = "kueken7_rgba8_srgb.dds"

@@ -22,12 +22,12 @@ fun main(args: Array<String>) {
     es_200_draw_elements().loop()
 }
 
-private class es_200_draw_elements : TestA("es-200-draw-elements", Profile.ES, 2, 0) {
+class es_200_draw_elements : TestA("es-200-draw-elements", Profile.ES, 2, 0) {
 
     val SHADER_SOURCE = "/es-200/flat-color"
 
     override var vertexCount = 4
-    override var positionData = bufferOf(
+    override var vertexData = bufferOf(
             Vec2(-1f, -1f),
             Vec2(+1f, -1f),
             Vec2(+1f, +1f),
@@ -55,7 +55,7 @@ private class es_200_draw_elements : TestA("es-200-draw-elements", Profile.ES, 2
         if (validated) {
 
             val compiler = Compiler()
-            programName = compiler.create("$SHADER_SOURCE.vert", "$SHADER_SOURCE.frag")
+            programName[0] = compiler.create("$SHADER_SOURCE.vert", "$SHADER_SOURCE.frag")
 
             withProgram(programName) {
                 "Position".attrib = semantic.attr.POSITION
@@ -69,15 +69,15 @@ private class es_200_draw_elements : TestA("es-200-draw-elements", Profile.ES, 2
         // Get variables locations
         if (validated)
             withProgram(programName) {
-                uniformMVP = "MVP".uniform
-                uniformDiffuse = "Diffuse".uniform
+                Uniform.mvp = "MVP".uniform
+                Uniform.diffuse = "Diffuse".uniform
             }
 
         // Set some variables
         if (validated)
         // Set uniform value
             usingProgram(programName) {
-                Vec4(1.0f, 0.5f, 0.0f, 1.0f) to uniformDiffuse
+                Vec4(1f, 0.5f, 0f, 1f) to Uniform.diffuse
             }
 
         return validated && checkError("initProgram")
@@ -102,7 +102,7 @@ private class es_200_draw_elements : TestA("es-200-draw-elements", Profile.ES, 2
         usingProgram(programName) {
 
             // Set the value of MVP uniform.
-            mvp to uniformMVP
+            mvp to Uniform.mvp
 
             withVertexLayout(bufferName[Buffer.VERTEX], bufferName[Buffer.ELEMENT], glf.pos2) {
                 glDrawElements(elementCount, GL_UNSIGNED_SHORT)

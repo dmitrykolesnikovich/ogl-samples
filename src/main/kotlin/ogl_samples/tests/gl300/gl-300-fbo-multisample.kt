@@ -11,7 +11,7 @@ import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import ogl_samples.framework.Compiler
-import ogl_samples.framework.TestB
+import ogl_samples.framework.TestA
 import org.lwjgl.opengl.ARBFramebufferObject.*
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL13.*
@@ -26,7 +26,7 @@ fun main(args: Array<String>) {
     gl_300_fbo_multisample().loop()
 }
 
-private class gl_300_fbo_multisample : TestB("gl-300-fbo-multisample", Profile.COMPATIBILITY, 3, 0) {
+private class gl_300_fbo_multisample : TestA("gl-300-fbo-multisample", Profile.COMPATIBILITY, 3, 0) {
 
     val SHADER_SOURCE = "gl-300/image-2d"
     val TEXTURE_DIFFUSE = "kueken7_rgba8_srgb.dds"
