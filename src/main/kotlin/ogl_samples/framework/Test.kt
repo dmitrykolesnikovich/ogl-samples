@@ -269,7 +269,8 @@ abstract class Test(
     fun checkGLVersion(majorVersionRequire: Int, minorVersionRequire: Int): Boolean {
         val majorVersionContext = glGetInteger(GL_MAJOR_VERSION)
         val minorVersionContext = glGetInteger(GL_MINOR_VERSION)
-        println("OpenGL Version Needed $majorVersionRequire.$minorVersionRequire ( $majorVersionContext.$minorVersionContext Found )")
+        val api = if(profile != Profile.ES) "OpenGL" else "OpenGL ES"
+        println("$api Version Needed $majorVersionRequire.$minorVersionRequire ( $majorVersionContext.$minorVersionContext Found )")
         return version(majorVersionContext, minorVersionContext) >= version(majorVersionContext, minorVersionContext)
     }
 

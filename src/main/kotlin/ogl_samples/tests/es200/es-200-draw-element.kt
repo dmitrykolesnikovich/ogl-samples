@@ -63,7 +63,7 @@ class es_200_draw_elements : TestA("es-200-draw-elements", Profile.ES, 2, 0) {
             }
 
             validated = validated && compiler.check()
-            validated = validated && compiler.checkProgram(programName)
+            validated = validated && compiler checkProgram programName
         }
 
         // Get variables locations
@@ -104,7 +104,7 @@ class es_200_draw_elements : TestA("es-200-draw-elements", Profile.ES, 2, 0) {
             // Set the value of MVP uniform.
             mvp to Uniform.mvp
 
-            withVertexLayout(bufferName[Buffer.VERTEX], bufferName[Buffer.ELEMENT], glf.pos2) {
+            withVertexLayout(Buffer.VERTEX, Buffer.ELEMENT, glf.pos2) {
                 glDrawElements(elementCount, GL_UNSIGNED_SHORT)
             }
         }

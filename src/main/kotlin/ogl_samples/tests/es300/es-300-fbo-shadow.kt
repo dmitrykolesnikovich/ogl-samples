@@ -67,19 +67,19 @@ private class es_300_fbo_shadow : TestA("es-300-fbo-shadow", Caps.Profile.ES, 3,
             shaderName[Shader.FRAG_RENDER] = compiler.create(FRAG_SHADER_SOURCE_RENDER)
             validated = validated && compiler.check()
 
-            programName[Program.RENDER] = initProgram {
+            initProgram(Program.RENDER) {
                 attach(shaderName[Shader.VERT_RENDER], shaderName[Shader.FRAG_RENDER])
                 "Position".attrib = semantic.attr.POSITION
                 "Color".attrib = semantic.attr.COLOR
                 link()
             }
 
-            validated = validated && compiler.checkProgram(programName[Program.RENDER])
+            validated = validated && compiler checkProgram Program.RENDER
         }
 
         if (validated)
             with(Uniform.Render) {
-                withProgram(programName[Program.RENDER]) {
+                withProgram(Program.RENDER) {
                     shadow = "Shadow".uniform
                     mvp = "MVP".uniform
                     depthBiasMVP = "DepthBiasMVP".uniform
@@ -92,17 +92,17 @@ private class es_300_fbo_shadow : TestA("es-300-fbo-shadow", Caps.Profile.ES, 3,
             shaderName[Shader.FRAG_DEPTH] = compiler.create(FRAG_SHADER_SOURCE_DEPTH)
             validated = validated && compiler.check()
 
-            programName[Program.DEPTH] = initProgram {
+            initProgram(Program.DEPTH) {
                 attach(shaderName[Shader.VERT_DEPTH], shaderName[Shader.FRAG_DEPTH])
                 "Position".attrib = semantic.attr.POSITION
                 link()
             }
 
-            validated = validated && compiler.checkProgram(programName[Program.DEPTH])
+            validated = validated && compiler checkProgram Program.DEPTH
         }
 
         if (validated)
-            withProgram(programName[Program.DEPTH]) { Uniform.depthMVP = "MVP".uniform }
+            withProgram(Program.DEPTH) { Uniform.depthMVP = "MVP".uniform }
 
         return validated
     }
@@ -111,7 +111,7 @@ private class es_300_fbo_shadow : TestA("es-300-fbo-shadow", Caps.Profile.ES, 3,
 
     override fun initTexture(): Boolean {
 
-        initTextures2d(textureName) {
+        initTextures2d() {
 
             at(Texture.COLORBUFFER) {
                 levels(base = 0, max = 0)
@@ -138,7 +138,7 @@ private class es_300_fbo_shadow : TestA("es-300-fbo-shadow", Caps.Profile.ES, 3,
 
             at(VertexArray.RENDER) {
 
-                withArrayBuffer(bufferName[Buffer.VERTEX]) {
+                withArrayBuffer(Buffer.VERTEX) {
                     glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, glf.pos3_col4ub.stride, 0)
                     glVertexAttribPointer(semantic.attr.COLOR, Vec4ub.length, GL_UNSIGNED_BYTE, true, glf.pos3_col4ub.stride, Vec3.size)
                 }
@@ -146,7 +146,7 @@ private class es_300_fbo_shadow : TestA("es-300-fbo-shadow", Caps.Profile.ES, 3,
                 glEnableVertexAttribArray(semantic.attr.POSITION)
                 glEnableVertexAttribArray(semantic.attr.COLOR)
 
-                element(bufferName[Buffer.ELEMENT])
+                element(Buffer.ELEMENT)
             }
         }
 
@@ -155,16 +155,16 @@ private class es_300_fbo_shadow : TestA("es-300-fbo-shadow", Caps.Profile.ES, 3,
 
     override fun initFramebuffer(): Boolean {
 
-        initFramebuffers(framebufferName) {
+        initFramebuffers {
 
             at(Framebuffer.FRAMEBUFFER) {
-                texture(GL_COLOR_ATTACHMENT0, textureName[Texture.COLORBUFFER])
-                texture(GL_DEPTH_ATTACHMENT, textureName[Texture.DEPTHBUFFER])
+                texture(GL_COLOR_ATTACHMENT0, Texture.COLORBUFFER)
+                texture(GL_DEPTH_ATTACHMENT, Texture.DEPTHBUFFER)
                 glDrawBuffers(GL_COLOR_ATTACHMENT0) // glDrawBuffer is deprecated!
                 if (!complete) return false
             }
             at(Framebuffer.SHADOW) {
-                texture(GL_DEPTH_ATTACHMENT, textureName[Texture.SHADOWMAP])
+                texture(GL_DEPTH_ATTACHMENT, Texture.SHADOWMAP)
                 if (!complete) return false
             }
 
@@ -192,13 +192,13 @@ private class es_300_fbo_shadow : TestA("es-300-fbo-shadow", Caps.Profile.ES, 3,
         val renderProjection = glm.perspective(glm.PIf * 0.25f, 4f / 3f, 0.1f, 10f)
         val renderMVP = renderProjection * view * model
 
-        usingProgram(programName[Program.DEPTH]) {
+        usingProgram(Program.DEPTH) {
 
             glUniform(Uniform.depthMVP, depthMVP)
             renderShadow()
         }
 
-        usingProgram(programName[Program.RENDER]) {
+        usingProgram(Program.RENDER) {
 
             glUniform(Uniform.Render.shadow, 0)
             glUniform(Uniform.Render.mvp, renderMVP)
@@ -217,10 +217,10 @@ private class es_300_fbo_shadow : TestA("es-300-fbo-shadow", Caps.Profile.ES, 3,
 
         glViewport(shadowSize)
 
-        glBindFramebuffer(GL_FRAMEBUFFER, framebufferName[Framebuffer.SHADOW])
+        glBindFramebuffer(GL_FRAMEBUFFER, Framebuffer.SHADOW)
         glClearDepthBuffer(1f)
 
-        glBindVertexArray(vertexArrayName[VertexArray.RENDER])
+        glBindVertexArray(VertexArray.RENDER)
         glDrawElements(elementCount, GL_UNSIGNED_SHORT)
 
         glDisable(GL_DEPTH_TEST)
@@ -239,9 +239,9 @@ private class es_300_fbo_shadow : TestA("es-300-fbo-shadow", Caps.Profile.ES, 3,
         glClearDepthBuffer()
         glClearColorBuffer()
 
-        withTexture2d(0, textureName[Texture.SHADOWMAP]) {
+        withTexture2d(0, Texture.SHADOWMAP) {
 
-            glBindVertexArray(vertexArrayName[VertexArray.RENDER])
+            glBindVertexArray(VertexArray.RENDER)
             glDrawElements(elementCount, GL_UNSIGNED_SHORT)
         }
 

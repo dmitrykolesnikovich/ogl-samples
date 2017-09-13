@@ -3,9 +3,9 @@ package ogl_samples.framework
 import org.lwjgl.opengl.GL11.GL_TRUE
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER
-import uno.gln.checkError
+import uno.gln.programName
 import java.io.File
-import kotlin.reflect.KClass
+import uno.gln.get
 
 /**
  * Created by GBarbieri on 07.04.2017.
@@ -52,16 +52,17 @@ class Compiler {
         return File(url.toURI()).readText() + "\n"
     }
 
-    infix fun checkProgram(programName: IntArray) = checkProgram(programName[0])
-    infix fun checkProgram(programName: Int): Boolean {
+    infix fun checkProgram(program: Enum<*>) = checkProgram(programName[program])
+    infix fun checkProgram(program: IntArray) = checkProgram(program[0])
+    infix fun checkProgram(program: Int): Boolean {
 
-        if (programName == 0) return false
+        if (program == 0) return false
 
-        val result = glGetProgrami(programName, GL_LINK_STATUS)
+        val result = glGetProgrami(program, GL_LINK_STATUS)
 
         if (result == GL_TRUE) return true
 
-        println(glGetProgramInfoLog(programName))
+        println(glGetProgramInfoLog(program))
 
         return result == GL_TRUE
     }

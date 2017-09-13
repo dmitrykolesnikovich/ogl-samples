@@ -12,11 +12,9 @@ import uno.buffer.destroyBuf
 import uno.buffer.intBufferBig
 import uno.caps.Caps
 import uno.glf.VertexLayout
-import uno.gln.checkError
-import uno.gln.initVertexArray
+import uno.gln.*
 import uno.kotlin.buffers.filter
 import java.nio.ByteBuffer
-import java.nio.IntBuffer
 import java.nio.ShortBuffer
 
 
@@ -31,45 +29,28 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
     open lateinit var vertexData: ByteBuffer
 
 
-    operator fun IntBuffer.get(e: Enum<*>) = get(e.ordinal)
-    operator fun IntArray.get(e: Enum<*>) = get(e.ordinal)
-    operator fun IntArray.set(e: Enum<*>, int: Int) = set(e.ordinal, int)
-    inline fun <reified T : Enum<T>> intArrayBig() = IntArray(enumValues<T>().size)
-
-
-    enum class Buffer { VERTEX, ELEMENT, TRANSFORM }
-
-    val bufferName = intBufferBig<Buffer>().also { glGenBuffers(it) }
-
-
+    enum class Buffer { VERTEX, ELEMENT, TRANSFORM, PER_SCENE, PER_PASS, PER_DRAW }
     enum class Texture { COLORBUFFER, RENDERBUFFER, DEPTHBUFFER, RGBA4, RGBA4_REV, BGRA4, BGRA4_REV, DIFFUSE, COLOR, DEPTH, RENDER,
         SHADOWMAP
     }
 
-    val textureName = intBufferBig<Texture>()
-
-
     enum class Program { RENDER, SPLASH, DEPTH }
-
-    var programName = IntArray(Program.values().size)
-
-
     enum class VertexArray { RENDER, SPLASH }   // >= 2 you can rename them
+    enum class Renderbuffer { COLOR, COLORBUFFER, DEPTHBUFFER, DEPTH, RENDER }
+    enum class Framebuffer { FRAMEBUFFER, RENDER, RESOLVE, DEPTH, SHADOW }
 
-    val vertexArrayName = intBufferBig<VertexArray>()
-
+    init {
+        bufferName = intBufferBig<Buffer>()
+        glGenBuffers(bufferName)
+        textureName = intBufferBig<Texture>()
+        programName = intArrayBig<Program>()
+        vertexArrayName = intBufferBig<VertexArray>()
+        renderbufferName = intBufferBig<Renderbuffer>()
+        framebufferName = intBufferBig<Framebuffer>()
+    }
 
     enum class Shader { VERT, FRAG, VERT_RENDER, FRAG_RENDER, VERT_SPLASH, FRAG_SPLASH, VERT_DEPTH, FRAG_DEPTH }
 
-
-    enum class Renderbuffer { COLOR, COLORBUFFER, DEPTHBUFFER, DEPTH, RENDER }
-
-    val renderbufferName = intBufferBig<Renderbuffer>()
-
-
-    enum class Framebuffer { FRAMEBUFFER, RENDER, RESOLVE, DEPTH, SHADOW }
-
-    val framebufferName = intBufferBig<Framebuffer>()
     val framebufferScale = 2
 
     object Uniform {
@@ -79,6 +60,10 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
         var transform = -1
 
         var depthMVP = -1
+
+        var perDraw = -1
+        var perPass = -1
+        var perScene = -1
 
         object Light {
             var proj = -1

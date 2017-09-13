@@ -13,7 +13,6 @@ import ogl_samples.framework.TestA
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL14.GL_DEPTH_COMPONENT16
 import org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER
-import org.lwjgl.opengl.GL15.glBindBuffer
 import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.bufferOf
@@ -70,7 +69,7 @@ private class es_200_fbo_shadow : TestA("es-200-fbo-shadow", Caps.Profile.ES, 2,
         glEnable(GL_DEPTH_TEST)
         glDepthFunc(GL_LESS)
 
-        withArrayBuffer(bufferName[Buffer.VERTEX]) {
+        withArrayBuffer(Buffer.VERTEX) {
             glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, glf.pos3_col4b.stride, 0)
             glVertexAttribPointer(semantic.attr.COLOR, Vec4b.length, GL_UNSIGNED_BYTE, true, glf.pos3_col4b.stride, Vec3.size)
         }
@@ -78,7 +77,7 @@ private class es_200_fbo_shadow : TestA("es-200-fbo-shadow", Caps.Profile.ES, 2,
         glEnableVertexAttribArray(semantic.attr.POSITION)
         glEnableVertexAttribArray(semantic.attr.COLOR)
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferName[Buffer.ELEMENT])
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Buffer.ELEMENT)
 
         return validated && checkError("begin")
     }
@@ -95,18 +94,18 @@ private class es_200_fbo_shadow : TestA("es-200-fbo-shadow", Caps.Profile.ES, 2,
             shaderName[Shader.FRAG_DEPTH] = compiler.create(FRAG_SHADER_SOURCE_DEPTH)
             validated = validated && compiler.check()
 
-            programName[Program.DEPTH] = initProgram {
+            initProgram(Program.DEPTH) {
                 attach(shaderName[Shader.VERT_DEPTH], shaderName[Shader.FRAG_DEPTH])
                 "Position".attrib = semantic.attr.POSITION
                 link()
             }
 
-            validated = validated && compiler.checkProgram(programName[Program.DEPTH])
+            validated = validated && compiler checkProgram Program.DEPTH
         }
 
         if (validated)
             with(Uniform.Light) {
-                withProgram(programName[Program.DEPTH]) {
+                withProgram(Program.DEPTH) {
                     proj = "LightProj".uniform
                     view = "LightView".uniform
                     world = "LightWorld".uniform
@@ -121,19 +120,19 @@ private class es_200_fbo_shadow : TestA("es-200-fbo-shadow", Caps.Profile.ES, 2,
             shaderName[Shader.FRAG_RENDER] = compiler.create(FRAG_SHADER_SOURCE_RENDER)
             validated = validated && compiler.check()
 
-            programName[Program.RENDER] = initProgram {
+            initProgram(Program.RENDER) {
                 attach(shaderName[Shader.VERT_RENDER], shaderName[Shader.FRAG_RENDER])
                 "Position".attrib = semantic.attr.POSITION
                 "Color".attrib = semantic.attr.COLOR
                 link()
             }
 
-            validated = validated && compiler.checkProgram(programName[Program.RENDER])
+            validated = validated && compiler checkProgram Program.RENDER
         }
 
         if (validated)
             with(Uniform.Render) {
-                withProgram(programName[Program.RENDER]) {
+                withProgram(Program.RENDER) {
                     p = "P".uniform
                     v = "V".uniform
                     w = "W".uniform
@@ -151,12 +150,12 @@ private class es_200_fbo_shadow : TestA("es-200-fbo-shadow", Caps.Profile.ES, 2,
 
     override fun initTexture(): Boolean {
 
-        initRenderbuffers(renderbufferName) {
+        initRenderbuffers {
             at(Renderbuffer.COLOR) { storage(GL_DEPTH_COMPONENT16, windowSize) }
             at(Renderbuffer.DEPTH) { storage(GL_DEPTH_COMPONENT16, shadowSize) }
         }
 
-        initTextures2d(textureName) {
+        initTextures2d() {
 
             at(Texture.COLOR) { image(GL_RGBA, windowSize, GL_RGBA, GL_UNSIGNED_BYTE) }
 
@@ -171,19 +170,19 @@ private class es_200_fbo_shadow : TestA("es-200-fbo-shadow", Caps.Profile.ES, 2,
 
     override fun initFramebuffer(): Boolean {
 
-        initFramebuffers(framebufferName) {
+        initFramebuffers {
 
             at(Framebuffer.DEPTH) {
                 checkError("b")
-                texture(GL_COLOR_ATTACHMENT0, textureName[Texture.DEPTH])
+                texture(GL_COLOR_ATTACHMENT0, Texture.DEPTH)
                 checkError("c")
-                renderbuffer(GL_DEPTH_ATTACHMENT, renderbufferName[Renderbuffer.DEPTH])
+                renderbuffer(GL_DEPTH_ATTACHMENT, Renderbuffer.DEPTH)
                 checkError("d")
                 if (!complete) return false
             }
             at(Framebuffer.RENDER) {
-                texture(GL_COLOR_ATTACHMENT0, textureName[Texture.COLOR])
-                renderbuffer(GL_DEPTH_ATTACHMENT, renderbufferName[Renderbuffer.COLOR])
+                texture(GL_COLOR_ATTACHMENT0, Texture.COLOR)
+                renderbuffer(GL_DEPTH_ATTACHMENT, Renderbuffer.COLOR)
                 if (!complete) return false
             }
         }
@@ -200,7 +199,7 @@ private class es_200_fbo_shadow : TestA("es-200-fbo-shadow", Caps.Profile.ES, 2,
             val lightV = glm.lookAt(Vec3(0.5, 1, 2), Vec3(), Vec3(0, 0, 1))
             val lightW = Mat4()
 
-            usingProgram(programName[Program.DEPTH]) {
+            usingProgram(Program.DEPTH) {
                 lightP to Uniform.Light.proj
                 lightV to Uniform.Light.view
                 lightW to Uniform.Light.world
@@ -216,7 +215,7 @@ private class es_200_fbo_shadow : TestA("es-200-fbo-shadow", Caps.Profile.ES, 2,
             val renderV = view
             val renderW = Mat4()
 
-            usingProgram(programName[Program.RENDER]) {
+            usingProgram(Program.RENDER) {
                 renderP to Uniform.Render.p
                 renderV to Uniform.Render.v
                 renderW to Uniform.Render.w
@@ -236,7 +235,7 @@ private class es_200_fbo_shadow : TestA("es-200-fbo-shadow", Caps.Profile.ES, 2,
 
         glViewport(shadowSize)
 
-        glBindFramebuffer(framebufferName[Framebuffer.DEPTH])
+        glBindFramebuffer(Framebuffer.DEPTH)
 
         glClearDepthBuffer(1f)
 
@@ -253,7 +252,7 @@ private class es_200_fbo_shadow : TestA("es-200-fbo-shadow", Caps.Profile.ES, 2,
         glClearDepthBuffer(1f)
         glClearColorBuffer(Vec4(0f, 0f, 0f, 1f))
 
-        withTexture2d(0, textureName[Texture.DEPTH]) {
+        withTexture2d(0, Texture.DEPTH) {
             glDrawElements(elementCount, GL_UNSIGNED_SHORT)
         }
 
