@@ -98,7 +98,7 @@ private class gl_300_test_alpha : TestA("gl-300-test-alpha", Profile.COMPATIBILI
         val texture = Texture2d(gli.loadDDS("$dataDirectory/$TEXTURE_DIFFUSE"))
         gli.gl.profile = gl.Profile.GL32
 
-        initTextures2d(textureName) {
+        initTextures2d() {
             at(Texture.DIFFUSE) {
                 levels(base = 0, max = texture.levels() - 1)
                 filter(min = linear_mmLinear, mag = linear)
@@ -128,7 +128,7 @@ private class gl_300_test_alpha : TestA("gl-300-test-alpha", Profile.COMPATIBILI
         glUniform(Uniform.diffuse, 0)
         glUniform(Uniform.mvp, mvp)
 
-        withTexture2d(0, textureName) {
+        withTexture2d(0, Texture.DIFFUSE) {
 
             glBindVertexArray(vertexArrayName)
 

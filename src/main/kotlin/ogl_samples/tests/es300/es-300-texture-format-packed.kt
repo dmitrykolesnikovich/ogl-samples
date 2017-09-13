@@ -63,7 +63,7 @@ private class es_300_texture_format_packed : TestA("es-300-texture-format-packed
             "Texcoord".attrib = semantic.attr.TEX_COORD
             "Color".fragData = semantic.frag.COLOR
             link()
-            validated = validated && compiler.checkProgram(name)
+            validated = validated && compiler checkProgram name
 
             Uniform.mvp = "MVP".uniform
             validated = validated && Uniform.mvp != -1
@@ -129,19 +129,19 @@ private class es_300_texture_format_packed : TestA("es-300-texture-format-packed
             glActiveTexture(GL_TEXTURE0)
 
             glViewport(viewport[0])
-            glBindTexture(GL_TEXTURE_2D, textureName[Texture.RGBA4])
+            glBindTexture(GL_TEXTURE_2D, Texture.RGBA4)
             glDrawArraysInstanced(vertexCount, 1)
 
             glViewport(viewport[1])
-            glBindTexture(GL_TEXTURE_2D, textureName[Texture.RGBA4_REV])
+            glBindTexture(GL_TEXTURE_2D, Texture.RGBA4_REV)
             glDrawArraysInstanced(vertexCount, 1)
 
             glViewport(viewport[2])
-            glBindTexture(GL_TEXTURE_2D, textureName[Texture.BGRA4])
+            glBindTexture(GL_TEXTURE_2D, Texture.BGRA4)
             glDrawArraysInstanced(vertexCount, 1)
 
             glViewport(viewport[3])
-            glBindTexture(GL_TEXTURE_2D, textureName[Texture.BGRA4_REV])
+            glBindTexture(GL_TEXTURE_2D, Texture.BGRA4_REV)
             glDrawArraysInstanced(vertexCount, 1)
         }
 

@@ -81,7 +81,7 @@ private class gl_300_fbo_multisample : TestA("gl-300-fbo-multisample", Profile.C
         val texture = Texture2d(gli.loadDDS("$dataDirectory/$TEXTURE_DIFFUSE"))
         gli.gl.profile = gl.Profile.GL32
 
-        initTextures2d(textureName) {
+        initTextures2d() {
 
             at(Texture.DIFFUSE) {
                 levels(base = 0, max = texture.levels() - 1)
@@ -103,7 +103,7 @@ private class gl_300_fbo_multisample : TestA("gl-300-fbo-multisample", Profile.C
 
     override fun initRenderbuffer(): Boolean {
 
-        initRenderbuffers(renderbufferName) {
+        initRenderbuffers {
             at(Renderbuffer.COLOR) {
                 storageMultisample(8, GL_RGBA8, FRAMEBUFFER_SIZE)   // The first parameter is the number of samples.
                 if (size != FRAMEBUFFER_SIZE || samples != 8 || format != GL_RGBA8)
@@ -115,15 +115,15 @@ private class gl_300_fbo_multisample : TestA("gl-300-fbo-multisample", Profile.C
 
     override fun initFramebuffer(): Boolean {
 
-        initFramebuffers(framebufferName) {
+        initFramebuffers {
 
             at(Framebuffer.RENDER) {
-                renderbuffer(GL_COLOR_ATTACHMENT0, renderbufferName[Renderbuffer.COLOR])
+                renderbuffer(GL_COLOR_ATTACHMENT0, Renderbuffer.COLOR)
                 if (!complete) return false
             }
 
             at(Framebuffer.RESOLVE) {
-                texture2D(GL_COLOR_ATTACHMENT0, textureName[Texture.COLOR])
+                texture2D(GL_COLOR_ATTACHMENT0, Texture.COLOR)
                 if (!complete) return false
             }
         }
@@ -143,24 +143,24 @@ private class gl_300_fbo_multisample : TestA("gl-300-fbo-multisample", Profile.C
         // Pass 1
         // Render the scene in a multisampled framebuffer
         glEnable(GL_MULTISAMPLE)
-        renderFBO(framebufferName[Framebuffer.RENDER])
+        renderFBO(Framebuffer.RENDER)
         glDisable(GL_MULTISAMPLE)
 
         // Resolved multisampling
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferName[Framebuffer.RENDER])
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebufferName[Framebuffer.RESOLVE])
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, Framebuffer.RENDER)
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, Framebuffer.RESOLVE)
         glBlitFramebuffer(FRAMEBUFFER_SIZE)
         glBindFramebuffer()
 
         // Pass 2
         // Render the colorbuffer from the multisampled framebuffer
         glViewport(windowSize)
-        renderFB(textureName[Texture.COLOR])
+        renderFB(Texture.COLOR)
 
         return true
     }
 
-    fun renderFBO(framebuffer: Int): Boolean {
+    fun renderFBO(framebuffer: Enum<*>): Boolean {
 
         glBindFramebuffer(framebuffer)
         glClearColor(0f, 0.5f, 1f, 1f)
@@ -173,7 +173,7 @@ private class gl_300_fbo_multisample : TestA("gl-300-fbo-multisample", Profile.C
 
         glViewport(FRAMEBUFFER_SIZE)
 
-        withTexture2d(0, textureName[Texture.DIFFUSE]) {
+        withTexture2d(0, Texture.DIFFUSE) {
 
             glBindVertexArray(vertexArrayName)
             glDrawArrays(vertexCount)
@@ -181,14 +181,14 @@ private class gl_300_fbo_multisample : TestA("gl-300-fbo-multisample", Profile.C
         return checkError("renderFBO")
     }
 
-    fun renderFB(texture2DName: Int) {
+    fun renderFB(texture2DName: Enum<*>) {
 
         val perspective = glm.perspective(glm.PIf * 0.25f, windowSize, 0.1f, 100f)
         val model = Mat4()
         val mvp = perspective * view * model
         glUniform(Uniform.mvp, mvp)
 
-        withTexture2d(0, textureName[Texture.COLOR]) {
+        withTexture2d(0, Texture.COLOR) {
 
             glBindVertexArray(vertexArrayName)
             glDrawArrays(vertexCount)

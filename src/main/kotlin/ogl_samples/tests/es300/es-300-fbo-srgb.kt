@@ -55,7 +55,7 @@ private class es_300_fbo_srgb : TestA("es-300-fbo-srgb", Profile.ES, 3, 0) {
 
         val shaderName = IntArray(Shader.values().size)
 
-        initPrograms(programName) {
+        initPrograms {
 
             if (validated) {
 
@@ -82,8 +82,8 @@ private class es_300_fbo_srgb : TestA("es-300-fbo-srgb", Profile.ES, 3, 0) {
             if (validated) {
 
                 validated = validated && compiler.check()
-                validated = validated && compiler.checkProgram(programName[Program.RENDER])
-                validated = validated && compiler.checkProgram(programName[Program.SPLASH])
+                validated = validated && compiler checkProgram Program.RENDER
+                validated = validated && compiler checkProgram Program.SPLASH
             }
 
             if (validated) {
@@ -104,7 +104,7 @@ private class es_300_fbo_srgb : TestA("es-300-fbo-srgb", Profile.ES, 3, 0) {
         initArrayBuffer(vertexData)
 
         val uniformBlockSize = glm.max(Mat4.size, caps.limits.UNIFORM_BUFFER_OFFSET_ALIGNMENT)
-        withUniformBuffer(bufferName[Buffer.TRANSFORM]) { data(uniformBlockSize, GL_STATIC_DRAW) }
+        withUniformBuffer(Buffer.TRANSFORM) { data(uniformBlockSize, GL_STATIC_DRAW) }
 
         return true
     }
@@ -113,7 +113,7 @@ private class es_300_fbo_srgb : TestA("es-300-fbo-srgb", Profile.ES, 3, 0) {
 
         val windowSize = windowSize * framebufferScale
 
-        initTextures2d(textureName) {
+        initTextures2d() {
 
             at(Texture.COLORBUFFER) {
                 levels(base = 0, max = 0)
@@ -131,9 +131,9 @@ private class es_300_fbo_srgb : TestA("es-300-fbo-srgb", Profile.ES, 3, 0) {
 
     override fun initVertexArray(): Boolean {
 
-        initVertexArrays(vertexArrayName) {
-            at(Program.RENDER) { array(bufferName[Buffer.VERTEX], glf.pos3) }
-            at(Program.SPLASH) {}
+        initVertexArrays {
+            at(VertexArray.RENDER) { array(Buffer.VERTEX, glf.pos3) }
+            at(VertexArray.SPLASH) {}
         }
         return true
     }
@@ -143,8 +143,8 @@ private class es_300_fbo_srgb : TestA("es-300-fbo-srgb", Profile.ES, 3, 0) {
         initFramebuffer(framebufferName) {
 
             //  GL_FRAMEBUFFER, which is the default target, is equivalent to GL_DRAW_FRAMEBUFFER, we can then omit it
-            texture2D(GL_COLOR_ATTACHMENT0, textureName[Texture.COLORBUFFER])
-            texture2D(GL_DEPTH_ATTACHMENT, textureName[Texture.RENDERBUFFER])
+            texture2D(GL_COLOR_ATTACHMENT0, Texture.COLORBUFFER)
+            texture2D(GL_DEPTH_ATTACHMENT, Texture.RENDERBUFFER)
 
             if (getColorEncoding() != GL_SRGB)
                 return false
@@ -163,7 +163,7 @@ private class es_300_fbo_srgb : TestA("es-300-fbo-srgb", Profile.ES, 3, 0) {
 
     override fun render(): Boolean {
 
-        mappingUniformBufferRange(bufferName[Buffer.TRANSFORM], Mat4.size, GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT) {
+        mappingUniformBufferRange(Buffer.TRANSFORM, Mat4.size, GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT) {
 
             //glm::mat4 Projection = glm::perspectiveFov(glm::pi<float>() * 0.25f, 640.f, 480.f, 0.1f, 100.0f);
             val projection = glm.perspective(glm.PIf * 0.25f, windowSize, 0.1f, 100f)
@@ -183,9 +183,9 @@ private class es_300_fbo_srgb : TestA("es-300-fbo-srgb", Profile.ES, 3, 0) {
             glClearDepthBuffer()
             glClearColorBuffer(1f, 0.5f, 0f, 1f)
 
-            glUseProgram(programName[Program.RENDER])
-            glBindVertexArray(vertexArrayName[Program.RENDER])
-            glBindBufferBase(GL_UNIFORM_BUFFER, semantic.uniform.TRANSFORM0, bufferName[Buffer.TRANSFORM])
+            glUseProgram(Program.RENDER)
+            glBindVertexArray(VertexArray.RENDER)
+            glBindBufferBase(GL_UNIFORM_BUFFER, semantic.uniform.TRANSFORM0, Buffer.TRANSFORM)
 
             glDrawArraysInstanced(vertexCount, 1)
         }
@@ -197,9 +197,9 @@ private class es_300_fbo_srgb : TestA("es-300-fbo-srgb", Profile.ES, 3, 0) {
             glViewport(windowSize)
 
             glBindFramebuffer()
-            glUseProgram(programName[Program.SPLASH])
-            withTexture2d(0, textureName[Texture.COLORBUFFER]) {
-                glBindVertexArray(vertexArrayName[Program.SPLASH])
+            glUseProgram(Program.SPLASH)
+            withTexture2d(0, Texture.COLORBUFFER) {
+                glBindVertexArray(VertexArray.SPLASH)
                 glDrawArraysInstanced(3, 1)
             }
         }
