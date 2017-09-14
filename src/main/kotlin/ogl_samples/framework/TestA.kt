@@ -7,6 +7,7 @@ import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
+import org.lwjgl.opengl.GL30.glGenVertexArrays
 import uno.buffer.destroy
 import uno.buffer.destroyBuf
 import uno.buffer.intBufferBig
@@ -29,7 +30,7 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
     open lateinit var vertexData: ByteBuffer
 
 
-    enum class Buffer { VERTEX, ELEMENT, TRANSFORM, PER_SCENE, PER_PASS, PER_DRAW, UNIFORM }
+    enum class Buffer { VERTEX, ELEMENT, TRANSFORM, PER_SCENE, PER_PASS, PER_DRAW, UNIFORM, ARRAY, COPY, MATERIAL }
     enum class Texture { COLORBUFFER, RENDERBUFFER, DEPTHBUFFER, RGBA4, RGBA4_REV, BGRA4, BGRA4_REV, DIFFUSE, COLOR, DEPTH, RENDER,
         SHADOWMAP
     }
@@ -45,6 +46,7 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
         textureName = intBufferBig<Texture>()
         programName = intArrayBig<Program>()
         vertexArrayName = intBufferBig<VertexArray>()
+        glGenVertexArrays(vertexArrayName)
         renderbufferName = intBufferBig<Renderbuffer>()
         framebufferName = intBufferBig<Framebuffer>()
     }
