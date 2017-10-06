@@ -30,7 +30,7 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
     open lateinit var vertexData: ByteBuffer
 
 
-    enum class Buffer { VERTEX, ELEMENT, TRANSFORM, PER_SCENE, PER_PASS, PER_DRAW, UNIFORM, ARRAY, COPY, MATERIAL }
+    enum class Buffer { VERTEX, ELEMENT, TRANSFORM, PER_SCENE, PER_PASS, PER_DRAW, UNIFORM, ARRAY, COPY, MATERIAL, POSITION, COLOR }
     enum class Texture { COLORBUFFER, RENDERBUFFER, DEPTHBUFFER, RGBA4, RGBA4_REV, BGRA4, BGRA4_REV, DIFFUSE, COLOR, DEPTH, RENDER,
         SHADOWMAP
     }

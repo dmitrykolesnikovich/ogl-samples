@@ -22,7 +22,7 @@ dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
-    compile 'com.github.kotlin-graphics:uno-sdk:8bac55d405fecdf466c7c795c8713e854dc92815'
+    compile 'com.github.kotlin-graphics:uno-sdk:3a43dffd4adc2083a4694918cdd98bfd60299a34'
 
     switch ( OperatingSystem.current() ) {
         case OperatingSystem.WINDOWS:

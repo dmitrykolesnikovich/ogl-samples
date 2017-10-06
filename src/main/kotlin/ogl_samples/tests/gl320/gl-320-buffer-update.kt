@@ -8,7 +8,8 @@ import glm_.vec4.Vec4
 import ogl_samples.framework.Compiler
 import ogl_samples.framework.TestA
 import org.lwjgl.opengl.GL11.GL_FLOAT
-import org.lwjgl.opengl.GL15.*
+import org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW
+import org.lwjgl.opengl.GL15.GL_STATIC_DRAW
 import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL20.glVertexAttribPointer
 import org.lwjgl.opengl.GL30.*
@@ -128,9 +129,7 @@ private class gl_320_buffer_update : TestA("es-320-buffer-update", Caps.Profile.
 
         withVertexArray(vertexArrayName) {
             withArrayBuffer(Buffer.COPY) {
-                glBindBuffer(GL_ARRAY_BUFFER, Buffer.COPY)
                 glVertexAttribPointer(semantic.attr.POSITION, Vec2.length, GL_FLOAT, false, Vec2.size, 0)
-                glBindBuffer(GL_ARRAY_BUFFER)
             }
             glEnableVertexAttribArray(semantic.attr.POSITION)
         }
@@ -142,12 +141,13 @@ private class gl_320_buffer_update : TestA("es-320-buffer-update", Caps.Profile.
 
         mappingUniformBufferRange(Buffer.TRANSFORM, Mat4.size, GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT) {
 
-        val projection = glm.perspective(glm.PIf * 0.25f, windowSize, 0.1f, 100f)
-        val model = Mat4()
-        val mvp = projection * view * model
+            val projection = glm.perspective(glm.PIf * 0.25f, windowSize, 0.1f, 100f)
+            val model = Mat4()
+            val mvp = projection * view * model
 
             pointer = mvp
-        }// Make sure the uniform buffer is uploaded
+
+        }// automatically unmapped and unbound to make sure the uniform buffer is uploaded
 
         glViewport(windowSize)
         glClearColorBuffer()
