@@ -1,4 +1,4 @@
-package ogl_samples.tests.gl300
+package oglSamples.tests.gl300
 
 /**
  * Created by elect on 08/04/17.
@@ -10,16 +10,16 @@ import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
-import ogl_samples.framework.Compiler
-import ogl_samples.framework.TestA
+import oglSamples.framework.Compiler
+import oglSamples.framework.TestA
 import org.lwjgl.opengl.ARBFramebufferObject.*
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL13.*
 import uno.buffer.bufferOf
 import uno.caps.Caps.Profile
-import uno.glf.Vertex
-import uno.glf.glf
-import uno.glf.semantic
+import gln.glf.Vertex
+import gln.glf.glf
+import gln.glf.semantic
 import uno.gln.*
 
 fun main(args: Array<String>) {

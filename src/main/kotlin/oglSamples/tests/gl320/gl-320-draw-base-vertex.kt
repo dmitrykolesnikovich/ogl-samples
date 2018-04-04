@@ -1,16 +1,16 @@
-package ogl_samples.tests.gl320
+package oglSamples.tests.gl320
 
 
 import glm_.glm
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4b
-import ogl_samples.framework.Compiler
-import ogl_samples.framework.TestA
+import oglSamples.framework.Compiler
+import oglSamples.framework.TestA
 import uno.buffer.bufferOf
 import uno.buffer.shortBufferOf
 import uno.caps.Caps
-import uno.glf.semantic
+import gln.glf.semantic
 import uno.gln.checkError
 import uno.gln.initProgram
 import uno.gln.programName

@@ -1,4 +1,4 @@
-//package ogl_samples.framework
+//package oglSamples.framework
 //
 //import glm_.vec2.Vec2i
 //import org.lwjgl.glfw.Callbacks

@@ -1,18 +1,18 @@
-package ogl_samples.tests.es300
+package oglSamples.tests.es300
 
 import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
-import ogl_samples.framework.Compiler
-import ogl_samples.framework.TestA
+import oglSamples.framework.Compiler
+import oglSamples.framework.TestA
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL20.*
 import uno.buffer.bufferOf
 import uno.buffer.shortBufferOf
 import uno.caps.Caps.Profile
-import uno.glf.glf
-import uno.glf.semantic
+import gln.glf.glf
+import gln.glf.semantic
 import uno.gln.*
 
 /**

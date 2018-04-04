@@ -1,4 +1,4 @@
-package ogl_samples.tests.es300
+package oglSamples.tests.es300
 
 import glm_.glm
 import glm_.mat4x4.Mat4
@@ -6,23 +6,19 @@ import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4ub
-import ogl_samples.framework.Compiler
-import ogl_samples.framework.TestA
+import oglSamples.framework.Compiler
+import oglSamples.framework.TestA
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL14.GL_DEPTH_COMPONENT24
-import org.lwjgl.opengl.GL15.GL_STATIC_DRAW
-import org.lwjgl.opengl.GL15.glDeleteBuffers
 import org.lwjgl.opengl.GL20.glDrawBuffers
 import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.bufferOf
-import uno.buffer.destroyBuf
-import uno.buffer.intBufferBig
 import uno.buffer.shortBufferOf
 import uno.caps.Caps
-import uno.glf.Vertex
-import uno.glf.glf
-import uno.glf.semantic
+import gln.glf.Vertex
+import gln.glf.glf
+import gln.glf.semantic
 import uno.gln.*
 
 fun main(args: Array<String>) {

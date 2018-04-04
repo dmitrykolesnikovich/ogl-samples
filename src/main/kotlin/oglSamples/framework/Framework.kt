@@ -1,10 +1,13 @@
-package ogl_samples.framework
+package oglSamples.framework
 
-import gli.Texture2d
+import gli_.Format
+import gli_.Texture2d
 import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
+import gln.checkError
+import gln.framebuffer.glBindFramebuffer
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWKeyCallbackI
 import org.lwjgl.glfw.GLFWMouseButtonCallbackI
@@ -14,14 +17,13 @@ import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32.GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS
+import org.lwjgl.system.MemoryUtil.NULL
 import org.lwjgl.system.Platform
 import uno.buffer.intBufferBig
+import uno.caps.Caps
 import uno.caps.Caps.Profile
 import uno.glfw.GlfwWindow
 import uno.glfw.glfw
-import uno.gln.checkError
-import uno.gln.glBindFramebuffer
-
 
 /**
  * Created by GBarbieri on 27.03.2017.
@@ -33,7 +35,7 @@ val EXIT_SUCCESS = false
 val EXIT_FAILURE = true
 var AUTOMATED_TESTS = false
 
-abstract class Test(
+abstract class Framework(
         val title: String,
         val profile: Profile, val major: Int, val minor: Int,
         val windowSize: Vec2i = Vec2i(640, 480),
@@ -56,7 +58,7 @@ abstract class Test(
             visible = true
             srgb = false
             decorated = true
-            val t = this@Test
+            val t = this@Framework
             api = if (t.profile == Profile.ES) "es" else "gl"
 
             if (version(t.major, t.minor) >= version(3, 2) || t.profile == Profile.ES) {
@@ -81,17 +83,18 @@ abstract class Test(
 
     init {
 
-        if (window.handle != 0L) with(window) {
+        if (window.handle != NULL)
+            with(window) {
 
-            pos = Vec2i(64)
+                pos = Vec2i(64)
 
-            glfwSetMouseButtonCallback(handle, MouseButtonCallback())
-            glfwSetKeyCallback(handle, KeyCallback())
+                glfwSetMouseButtonCallback(handle, MouseButtonCallback())
+                glfwSetKeyCallback(handle, KeyCallback())
 
-            makeContextCurrent()
-            GL.createCapabilities()
-            show()
-        }
+                makeContextCurrent()
+                GL.createCapabilities()
+                show()
+            }
     }
 
     constructor(title: String, profile: Profile, major: Int, minor: Int,
@@ -122,10 +125,10 @@ abstract class Test(
     var timeMax = 0.0
     var mouseOrigin = Vec2(windowSize shr 1)
     var mouseCurrent = Vec2(windowSize shr 1)
-    var translationOrigin = Vec2(position)
-    var translationCurrent = Vec2(position)
-    var rotationOrigin = Vec2(orientation)
-    var rotationCurrent = Vec2(orientation)
+    val translationOrigin = Vec2(position)
+    val translationCurrent = Vec2(position)
+    val rotationOrigin = Vec2(orientation)
+    val rotationCurrent = Vec2(orientation)
     var mouseButtonFlags = 0
     val keyPressed = BooleanArray(512, { false })
     var error = false
@@ -166,7 +169,7 @@ abstract class Test(
             result = result && checkError("render")
 
             glfwPollEvents()
-            if (window.close || (AUTOMATED_TESTS && frameCount == 0)) {
+            if (window.shouldClose || (AUTOMATED_TESTS && frameCount == 0)) {
                 if (success == Success.MATCH_TEMPLATE) {
                     if (!checkTemplate(window.handle, title))
                         result = EXIT_FAILURE
@@ -197,14 +200,14 @@ abstract class Test(
 
         val windowSize = window.framebufferSize
 
-        val textureRead = Texture2d(if (colorFormat == GL_RGBA) gli.Format.RGBA8_UNORM_PACK8 else gli.Format.RGB8_UNORM_PACK8, windowSize, 1)
-        val textureRGB = Texture2d(gli.Format.RGB8_UNORM_PACK8, windowSize, 1)
+        val textureRead = Texture2d(if (colorFormat == GL_RGBA) Format.RGBA8_UNORM_PACK8 else Format.RGB8_UNORM_PACK8, windowSize, 1)
+        val textureRGB = Texture2d(Format.RGB8_UNORM_PACK8, windowSize, 1)
 
         glBindFramebuffer()
         glReadPixels(0, 0, windowSize.x, windowSize.y, colorFormat, colorType,
-                if (textureRead.format == gli.Format.RGBA8_UNORM_PACK8) textureRead.data() else textureRGB.data())
+                if (textureRead.format == Format.RGBA8_UNORM_PACK8) textureRead.data() else textureRGB.data())
 
-        if (textureRead.format == gli.Format.RGBA8_UNORM_PACK8) {
+        if (textureRead.format == Format.RGBA8_UNORM_PACK8) {
             for (y in 0 until textureRGB.extent().y)
                 for (x in 0 until textureRGB.extent().x) {
 
@@ -269,7 +272,7 @@ abstract class Test(
     fun checkGLVersion(majorVersionRequire: Int, minorVersionRequire: Int): Boolean {
         val majorVersionContext = glGetInteger(GL_MAJOR_VERSION)
         val minorVersionContext = glGetInteger(GL_MINOR_VERSION)
-        val api = if(profile != Profile.ES) "OpenGL" else "OpenGL ES"
+        val api = if (profile != Profile.ES) "OpenGL" else "OpenGL ES"
         println("$api Version Needed $majorVersionRequire.$minorVersionRequire ( $majorVersionContext.$minorVersionContext Found )")
         return version(majorVersionContext, minorVersionContext) >= version(majorVersionContext, minorVersionContext)
     }
@@ -307,13 +310,11 @@ abstract class Test(
     }
 
     inner class KeyCallback : GLFWKeyCallbackI {
-        override fun invoke(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {
+        override fun invoke(windowHandle: Long, key: Int, scancode: Int, action: Int, mods: Int) {
             if (key < 0) return
-
             keyPressed[key] = action == Key.PRESS
-
             if (isKeyPressed(GLFW_KEY_ESCAPE))
-                this@Test.window.close = true
+                window.shouldClose = true
         }
     }
 

@@ -1,4 +1,4 @@
-package ogl_samples.tests.es300
+package oglSamples.tests.es300
 
 import glm_.BYTES
 import glm_.glm
@@ -8,8 +8,8 @@ import glm_.s
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
 import glm_.vec4.Vec4i
-import ogl_samples.framework.Compiler
-import ogl_samples.framework.TestA
+import oglSamples.framework.Compiler
+import oglSamples.framework.TestA
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL12.GL_UNSIGNED_SHORT_4_4_4_4
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
@@ -17,9 +17,9 @@ import org.lwjgl.opengl.GL13.glActiveTexture
 import uno.buffer.bufferBig
 import uno.buffer.bufferOf
 import uno.caps.Caps.Profile
-import uno.glf.Vertex
-import uno.glf.glf
-import uno.glf.semantic
+import gln.glf.Vertex
+import gln.glf.glf
+import gln.glf.semantic
 import uno.gln.*
 
 /**

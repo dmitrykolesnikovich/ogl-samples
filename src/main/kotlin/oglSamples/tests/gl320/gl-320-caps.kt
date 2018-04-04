@@ -1,8 +1,8 @@
-package ogl_samples.tests.gl320
+package oglSamples.tests.gl320
 
 
 import glm_.L
-import ogl_samples.framework.TestA
+import oglSamples.framework.TestA
 import uno.caps.Caps
 import uno.gln.glClearColorBuffer
 import uno.gln.glViewport

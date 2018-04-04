@@ -1,4 +1,4 @@
-package ogl_samples.framework
+package oglSamples.framework
 
 import org.lwjgl.opengl.GL11.GL_TRUE
 import org.lwjgl.opengl.GL20.*

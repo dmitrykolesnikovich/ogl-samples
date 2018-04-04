@@ -5,12 +5,12 @@ apply plugin: 'kotlin'
 
 buildscript {
 
-    ext.kotlinVersion = '1.2-M2'
+    ext.kotlinVersion = '1.2.31'
 
     repositories {
         mavenCentral()
-        maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url = "https://dl.bintray.com/kotlin/kotlin-dev" }
+        maven { url = "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
 
     dependencies {
@@ -22,7 +22,7 @@ dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
-    compile 'com.github.kotlin-graphics:uno-sdk:3a43dffd4adc2083a4694918cdd98bfd60299a34'
+    compile 'com.github.kotlin-graphics:uno-sdk:6580af1ce56030324f4eb6ce5d0b97b2f747333c'
 
     switch ( OperatingSystem.current() ) {
         case OperatingSystem.WINDOWS:
@@ -35,7 +35,7 @@ dependencies {
             ext.lwjglNatives = "natives-macos"
             break
     }
-    ext.lwjglVersion = "3.1.2-SNAPSHOT"
+    ext.lwjglVersion = "3.1.7-SNAPSHOT"
     compile "org.lwjgl:lwjgl:${lwjglVersion}"
     compile "org.lwjgl:lwjgl-glfw:${lwjglVersion}"
     compile "org.lwjgl:lwjgl-jemalloc:${lwjglVersion}"
@@ -52,7 +52,7 @@ dependencies {
 
 repositories {
     mavenCentral()
-    maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
-    maven { url 'https://jitpack.io' }
-    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    maven { url = "https://dl.bintray.com/kotlin/kotlin-dev" }
+    maven { url = 'https://jitpack.io' }
+    maven { url = "https://oss.sonatype.org/content/repositories/snapshots/" }
 }

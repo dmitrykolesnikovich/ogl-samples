@@ -1,4 +1,4 @@
-package ogl_samples.tests.es200
+package oglSamples.tests.es200
 
 import glm_.glm
 import glm_.mat4x4.Mat4
@@ -8,20 +8,33 @@ import glm_.vec3.Vec3
 import glm_.vec4.Vec4
 import glm_.vec4.Vec4b
 import glm_.vec4.Vec4ub
-import ogl_samples.framework.Compiler
-import ogl_samples.framework.TestA
+import gln.buffer.glBindBuffer
+import gln.buffer.glBindElementBuffer
+import gln.buffer.withArrayBuffer
+import gln.checkError
+import gln.framebuffer.Framebuffer.complete
+import gln.framebuffer.initFramebuffers
+import gln.framebuffer.withFramebuffer
+import oglSamples.framework.Compiler
+import oglSamples.framework.TestA
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL14.GL_DEPTH_COMPONENT16
-import org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER
 import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.bufferOf
 import uno.buffer.shortBufferOf
 import uno.caps.Caps
-import uno.glf.Vertex
-import uno.glf.glf
-import uno.glf.semantic
-import uno.gln.*
+import gln.glf.Vertex
+import gln.glf.glf
+import gln.glf.semantic
+import gln.intArrayBig
+import gln.set
+import gln.get
+import gln.program.initProgram
+import gln.program.withProgram
+import gln.renderbuffer.initRenderbuffers
+import gln.texture.initTextures2d
+import gln.vertexArray.glVertexAttribPointer
 
 fun main(args: Array<String>) {
     es_200_fbo_shadow().loop()
@@ -77,7 +90,7 @@ private class es_200_fbo_shadow : TestA("es-200-fbo-shadow", Caps.Profile.ES, 2,
         glEnableVertexAttribArray(semantic.attr.POSITION)
         glEnableVertexAttribArray(semantic.attr.COLOR)
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Buffer.ELEMENT)
+        glBindElementBuffer(Buffer.ELEMENT)
 
         return validated && checkError("begin")
     }
@@ -155,7 +168,7 @@ private class es_200_fbo_shadow : TestA("es-200-fbo-shadow", Caps.Profile.ES, 2,
             at(Renderbuffer.DEPTH) { storage(GL_DEPTH_COMPONENT16, shadowSize) }
         }
 
-        initTextures2d() {
+        initTextures2d {
 
             at(Texture.COLOR) { image(GL_RGBA, windowSize, GL_RGBA, GL_UNSIGNED_BYTE) }
 

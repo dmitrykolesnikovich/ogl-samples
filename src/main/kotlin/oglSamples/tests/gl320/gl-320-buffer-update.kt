@@ -1,12 +1,12 @@
-package ogl_samples.tests.gl320
+package oglSamples.tests.gl320
 
 import glm_.L
 import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
 import glm_.vec4.Vec4
-import ogl_samples.framework.Compiler
-import ogl_samples.framework.TestA
+import oglSamples.framework.Compiler
+import oglSamples.framework.TestA
 import org.lwjgl.opengl.GL11.GL_FLOAT
 import org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW
 import org.lwjgl.opengl.GL15.GL_STATIC_DRAW
@@ -17,7 +17,7 @@ import org.lwjgl.opengl.GL31.*
 import org.lwjgl.system.libc.LibCString.memcpy
 import uno.buffer.bufferOf
 import uno.caps.Caps
-import uno.glf.semantic
+import gln.glf.semantic
 import uno.gln.*
 
 fun main(args: Array<String>) {

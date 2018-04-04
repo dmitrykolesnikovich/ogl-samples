@@ -1,4 +1,4 @@
-//package ogl_samples.tests.gl320
+//package oglSamples.tests.gl320
 //
 //import com.jogamp.opengl.GL.*
 //import com.jogamp.opengl.GL2ES3.GL_UNIFORM_BUFFER
@@ -8,15 +8,15 @@
 //import glm_.L
 //import glm_.glm
 //import glm_.mat.Mat4
-//import ogl_samples.framework.Test
-//import ogl_samples.framework.semantic
+//import oglSamples.framework.Test
+//import oglSamples.framework.semantic
 //import uno.buffer.byteBufferBig
 //import uno.buffer.floatBufferOf
 //import uno.buffer.intBufferBig
 //import uno.buffer.shortBufferOf
 //import uno.caps.Caps.Profile
 //import uno.gl.checkError
-//import uno.glf.Vertex_v2fv2f
+//import gln.glf.Vertex_v2fv2f
 //import uno.glsl.programOf
 //import java.nio.ByteBuffer
 //

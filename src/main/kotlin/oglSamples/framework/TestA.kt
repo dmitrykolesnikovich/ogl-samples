@@ -1,7 +1,11 @@
-package ogl_samples.framework
+package oglSamples.framework
 
-import gli.wasInit
 import glm_.vec2.Vec2
+import gln.buffer.bufferName
+import gln.buffer.glBindBuffer
+import gln.checkError
+import gln.framebuffer.framebufferName
+import gln.get
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL15.*
@@ -12,15 +16,20 @@ import uno.buffer.destroy
 import uno.buffer.destroyBuf
 import uno.buffer.intBufferBig
 import uno.caps.Caps
-import uno.glf.VertexLayout
-import uno.gln.*
+import gln.glf.VertexLayout
+import gln.intArrayBig
+import gln.program.programName
+import gln.renderbuffer.renderbufferName
+import gln.texture.textureName
+import gln.vertexArray.initVertexArray
+import gln.vertexArray.vertexArrayName
 import uno.kotlin.buffers.filter
 import java.nio.ByteBuffer
 import java.nio.ShortBuffer
 
 
 abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: Int, orientation: Vec2 = Vec2()) :
-        Test(title, profile, major, minor, orientation) {
+        Framework(title, profile, major, minor, orientation) {
 
 
     var elementCount = 0
@@ -133,7 +142,7 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
 
     open fun initArrayBuffer(vertices: ByteBuffer): Boolean {
 
-        glBindBuffer(GL_ARRAY_BUFFER, bufferName[Buffer.VERTEX])
+        glBindBuffer(GL_ARRAY_BUFFER, Buffer.VERTEX)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
@@ -144,7 +153,7 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
 
         elementCount = elements.capacity()
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferName[Buffer.ELEMENT])
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Buffer.ELEMENT)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements, GL_STATIC_DRAW)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
     }
@@ -176,8 +185,8 @@ abstract class TestA(title: String, profile: Caps.Profile, major: Int, minor: In
         framebufferName.filter(GL30::glIsFramebuffer).map(GL30::glDeleteFramebuffers)
         renderbufferName.filter(GL30::glIsRenderbuffer).map(GL30::glDeleteRenderbuffers)
 
-        if (wasInit { vertexData }) vertexData.destroy()
-        if (wasInit { elementData }) elementData.destroy()
+        if (::vertexData.isInitialized) vertexData.destroy()
+        if (::elementData.isInitialized) elementData.destroy()
 
         destroyBuf(bufferName, vertexArrayName, textureName, framebufferName, renderbufferName)
 

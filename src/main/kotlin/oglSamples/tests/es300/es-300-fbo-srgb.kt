@@ -1,4 +1,4 @@
-package ogl_samples.tests.es300
+package oglSamples.tests.es300
 
 /**
  * Created by GBarbieri on 21.04.2017.
@@ -7,8 +7,8 @@ package ogl_samples.tests.es300
 import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec3.Vec3
-import ogl_samples.framework.Compiler
-import ogl_samples.framework.TestA
+import oglSamples.framework.Compiler
+import oglSamples.framework.TestA
 import org.lwjgl.opengl.ARBFramebufferObject.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.ARBFramebufferObject.GL_DEPTH_ATTACHMENT
 import org.lwjgl.opengl.ARBMapBufferRange.GL_MAP_INVALIDATE_BUFFER_BIT
@@ -24,9 +24,9 @@ import org.lwjgl.opengl.GL21.GL_SRGB
 import org.lwjgl.opengl.GL21.GL_SRGB8_ALPHA8
 import uno.buffer.bufferOf
 import uno.caps.Caps.Profile
-import uno.glf.generateIcosahedron
-import uno.glf.glf
-import uno.glf.semantic
+import gln.glf.generateIcosahedron
+import gln.glf.glf
+import gln.glf.semantic
 import uno.gln.*
 
 /**
